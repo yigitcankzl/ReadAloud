@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { AlertCircle, Keyboard } from 'lucide-react';
+import { AlertCircle, Keyboard, Bookmark, GripHorizontal } from 'lucide-react';
 import Header from './components/Header';
 import UrlInput from './components/UrlInput';
 import LoadingState from './components/LoadingState';
@@ -257,7 +257,7 @@ export default function App() {
         </p>
 
         {/* Keyboard shortcuts toggle */}
-        <div className="mt-3 flex justify-center">
+        <div className="mt-3 flex justify-center gap-4">
           <button
             type="button"
             onClick={() => setShowShortcuts((v) => !v)}
@@ -266,18 +266,40 @@ export default function App() {
             className="inline-flex items-center gap-1.5 text-white/20 hover:text-white/50 transition-colors text-[11px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]/60 rounded px-1"
           >
             <Keyboard className="w-3.5 h-3.5" aria-hidden="true" />
-            Keyboard shortcuts
+            Shortcuts & Bookmarklet
           </button>
         </div>
 
-        {/* Shortcuts panel */}
+        {/* Shortcuts + Bookmarklet panel */}
         {showShortcuts && (
           <div
             id="keyboard-shortcuts-panel"
             role="region"
-            aria-label="Keyboard shortcuts"
-            className="mt-3 mx-auto max-w-sm bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-left animate-in fade-in slide-in-from-bottom-2 duration-200"
+            aria-label="Keyboard shortcuts and bookmarklet"
+            className="mt-3 mx-auto max-w-md bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-left animate-in fade-in slide-in-from-bottom-2 duration-200"
           >
+            {/* Bookmarklet */}
+            <h2 className="text-[11px] font-semibold text-white/40 uppercase tracking-wider mb-2">
+              Bookmarklet
+            </h2>
+            <p className="text-[11px] text-white/30 mb-2">
+              Drag the button below to your bookmarks bar. Then click it on any page to read it aloud.
+            </p>
+            <div className="flex items-center gap-2 mb-4">
+              <a
+                href={`javascript:void(window.open('${window.location.origin}/?url='+encodeURIComponent(window.location.href)))`}
+                onClick={(e) => e.preventDefault()}
+                draggable="true"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gradient-to-r from-[#14B8A6] to-emerald-500 text-white text-xs font-semibold shadow-md cursor-grab active:cursor-grabbing hover:shadow-lg transition-shadow"
+                aria-label="Drag this to your bookmarks bar to install the ReadAloud bookmarklet"
+              >
+                <GripHorizontal className="w-3.5 h-3.5" aria-hidden="true" />
+                ReadAloud This Page
+              </a>
+              <span className="text-[10px] text-white/20">← drag to bookmarks bar</span>
+            </div>
+
+            {/* Keyboard Shortcuts */}
             <h2 className="text-[11px] font-semibold text-white/40 uppercase tracking-wider mb-2">
               Keyboard Shortcuts
             </h2>
