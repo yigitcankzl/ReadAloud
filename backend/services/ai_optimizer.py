@@ -33,7 +33,7 @@ def optimize_for_audio(title: str, text: str, language: str = "en") -> str:
     if language == "tr":
         system += "\n\nOutput the optimized text in Turkish."
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
 
     payload = {
         "system_instruction": {
