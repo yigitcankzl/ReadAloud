@@ -253,8 +253,8 @@ export default function UrlInput({ onSubmit, onPdfSubmit, isLoading, voices }) {
         {/* Voice */}
         {filteredVoices.length > 0 && (
           <Select
-            value={voiceId}
-            onValueChange={setVoiceId}
+            value={voiceId || '__default__'}
+            onValueChange={(val) => setVoiceId(val === '__default__' ? '' : val)}
             disabled={isLoading}
           >
             <SelectTrigger className="h-11 rounded-xl border-border/60 bg-background flex-1">
@@ -264,7 +264,7 @@ export default function UrlInput({ onSubmit, onPdfSubmit, isLoading, voices }) {
               </div>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Default Voice</SelectItem>
+              <SelectItem value="__default__">Default Voice</SelectItem>
               {filteredVoices.map((v) => (
                 <SelectItem key={v.voice_id} value={v.voice_id}>
                   {v.category === 'kokoro' ? v.name.replace('Kokoro - ', '') : v.name}
