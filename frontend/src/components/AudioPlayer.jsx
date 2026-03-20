@@ -22,25 +22,8 @@ export default function AudioPlayer({ audioUrl, title }) {
   // Expose togglePlay via a ref so App.jsx can call it for Space shortcut
   const togglePlayRef = useRef(null);
 
-  // Setup Web Audio API analyser
-  const setupAnalyser = useCallback(() => {
-    if (analyserRef.current) return;
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const analyser = ctx.createAnalyser();
-      analyser.fftSize = 128;
-      const source = ctx.createMediaElementSource(audio);
-      source.connect(analyser);
-      analyser.connect(ctx.destination);
-      audioCtxRef.current = ctx;
-      analyserRef.current = analyser;
-    } catch {
-      // Web Audio API not available
-    }
-  }, []);
+  // Analyser disabled — createMediaElementSource silences cross-origin audio
+  const setupAnalyser = useCallback(() => {}, []);
 
   // Draw waveform visualization
   const drawWaveform = useCallback(() => {

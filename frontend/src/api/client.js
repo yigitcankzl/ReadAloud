@@ -10,7 +10,8 @@ export async function convertUrl(url, language, voiceId, mode) {
 }
 
 export function getAudioUrl(jobId) {
-  return `${API_BASE}/api/audio/${jobId}`;
+  // Serve audio directly from backend to avoid Vite proxy timeout on large files
+  return `http://localhost:8000/api/audio/${jobId}`;
 }
 
 export async function convertPdf(file, language, voiceId, mode) {
