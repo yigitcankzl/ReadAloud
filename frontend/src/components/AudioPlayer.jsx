@@ -234,7 +234,6 @@ export default function AudioPlayer({ audioUrl, title }) {
           ref={audioRef}
           src={audioUrl}
           preload="metadata"
-          crossOrigin="anonymous"
           aria-label={title ? `Audio: ${title}` : 'Converted audio'}
         />
 
