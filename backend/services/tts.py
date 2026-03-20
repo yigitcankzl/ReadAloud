@@ -13,7 +13,53 @@ class TTSError(Exception):
         super().__init__(message)
 
 
-def text_to_speech(text: str, voice_id: str = None, language: str = "en") -> bytes:
+KOKORO_VOICES = {
+    "af_heart": "Heart (Female)",
+    "af_alloy": "Alloy (Female)",
+    "af_bella": "Bella (Female)",
+    "af_nova": "Nova (Female)",
+    "af_sarah": "Sarah (Female)",
+    "af_sky": "Sky (Female)",
+    "am_adam": "Adam (Male)",
+    "am_echo": "Echo (Male)",
+    "am_eric": "Eric (Male)",
+    "am_michael": "Michael (Male)",
+    "am_liam": "Liam (Male)",
+    "bf_alice": "Alice (British Female)",
+    "bf_emma": "Emma (British Female)",
+    "bm_daniel": "Daniel (British Male)",
+    "bm_george": "George (British Male)",
+}
+
+
+def _kokoro_tts(text: str, voice: str = "af_heart", language: str = "en") -> bytes:
+    from kokoro import KPipeline
+    import soundfile as sf
+    import numpy as np
+
+    lang_code = "a" if language != "tr" else "a"
+    pipeline = KPipeline(lang_code=lang_code)
+
+    all_audio = []
+    for _, _, audio in pipeline(text, voice=voice):
+        all_audio.append(audio)
+
+    if not all_audio:
+        raise TTSError("Kokoro produced no audio output")
+
+    combined = np.concatenate(all_audio)
+
+    wav_buf = io.BytesIO()
+    sf.write(wav_buf, combined, 24000, format="WAV")
+    wav_buf.seek(0)
+
+    segment = AudioSegment.from_wav(wav_buf)
+    mp3_buf = io.BytesIO()
+    segment.export(mp3_buf, format="mp3", bitrate="192k")
+    return mp3_buf.getvalue()
+
+
+def _elevenlabs_tts(text: str, voice_id: str, language: str = "en") -> bytes:
     api_key = os.getenv("ELEVENLABS_API_KEY")
     if not api_key:
         raise TTSError("ELEVENLABS_API_KEY not configured")
@@ -48,6 +94,7 @@ def text_to_speech(text: str, voice_id: str = None, language: str = "en") -> byt
             raise TTSError(f"TTS request failed: {e}")
 
         if response.status_code != 200:
+            print(f"[TTS] ElevenLabs error on chunk: {response.status_code} - {response.text[:300]}")
             raise TTSError(f"ElevenLabs API error: {response.status_code} - {response.text}")
 
         audio_segments.append(response.content)
@@ -65,29 +112,43 @@ def text_to_speech(text: str, voice_id: str = None, language: str = "en") -> byt
     return output.getvalue()
 
 
-def get_available_voices() -> list[dict]:
-    api_key = os.getenv("ELEVENLABS_API_KEY")
-    if not api_key:
-        raise TTSError("ELEVENLABS_API_KEY not configured")
-
-    url = "https://api.elevenlabs.io/v1/voices"
-    headers = {"xi-api-key": api_key}
-
+def text_to_speech(text: str, voice_id: str = None, language: str = "en") -> bytes:
+    # Try ElevenLabs first, fallback to Kokoro
     try:
-        response = requests.get(url, headers=headers, timeout=15)
-    except requests.RequestException as e:
-        raise TTSError(f"Could not fetch voices: {e}")
+        return _elevenlabs_tts(text, voice_id, language)
+    except TTSError as e:
+        print(f"[TTS] ElevenLabs failed, falling back to Kokoro: {e.message}")
+        kokoro_voice = voice_id if voice_id in KOKORO_VOICES else "af_heart"
+        return _kokoro_tts(text, voice=kokoro_voice, language=language)
 
-    if response.status_code != 200:
-        raise TTSError(f"ElevenLabs API error: {response.status_code}")
 
-    data = response.json()
+def get_available_voices() -> list[dict]:
     voices = []
-    for voice in data.get("voices", []):
+
+    # Try ElevenLabs voices
+    api_key = os.getenv("ELEVENLABS_API_KEY")
+    if api_key:
+        try:
+            url = "https://api.elevenlabs.io/v1/voices"
+            headers = {"xi-api-key": api_key}
+            response = requests.get(url, headers=headers, timeout=15)
+            if response.status_code == 200:
+                data = response.json()
+                for voice in data.get("voices", []):
+                    voices.append({
+                        "voice_id": voice["voice_id"],
+                        "name": voice["name"],
+                        "category": voice.get("category", ""),
+                    })
+        except Exception:
+            pass
+
+    # Always add Kokoro voices
+    for vid, name in KOKORO_VOICES.items():
         voices.append({
-            "voice_id": voice["voice_id"],
-            "name": voice["name"],
-            "category": voice.get("category", ""),
+            "voice_id": vid,
+            "name": f"Kokoro - {name}",
+            "category": "kokoro",
         })
 
     return voices
