@@ -1,107 +1,82 @@
 import { Globe, Sparkles, Mic2, CheckCircle2, Loader2 } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 const steps = [
-  {
-    label: 'Fetching page content',
-    description: 'Reading the article text...',
-    icon: Globe,
-  },
-  {
-    label: 'Optimizing for audio',
-    description: 'AI is preparing the script...',
-    icon: Sparkles,
-  },
-  {
-    label: 'Generating natural voice',
-    description: 'Creating your podcast audio...',
-    icon: Mic2,
-  },
+  { label: 'Fetching content', description: 'Reading the page...', icon: Globe },
+  { label: 'AI optimization', description: 'Preparing script...', icon: Sparkles },
+  { label: 'Generating voice', description: 'Creating audio...', icon: Mic2 },
 ];
 
 export default function LoadingState({ currentStep }) {
+  const progress = ((currentStep - 1) / steps.length) * 100 + (100 / steps.length / 2);
+
   return (
-    <Card className="mt-6 border-border/60 shadow-sm">
-      <CardContent className="py-6 px-6">
-        <div className="space-y-4">
-          {steps.map((step, i) => {
-            const stepNum = i + 1;
-            const isActive = stepNum === currentStep;
-            const isComplete = stepNum < currentStep;
-            const isPending = stepNum > currentStep;
-            const Icon = step.icon;
+    <div className="mt-6 relative rounded-2xl overflow-hidden">
+      <div className="absolute inset-0 bg-white/[0.03]" />
+      <div className="absolute -top-12 -right-12 w-32 h-32 bg-[#14B8A6]/10 rounded-full blur-3xl" />
+      <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-purple-500/5 rounded-full blur-3xl" />
 
-            return (
-              <div
-                key={stepNum}
-                className={cn(
-                  'flex items-center gap-4 rounded-xl p-3 transition-all duration-300',
-                  isActive && 'bg-[#14B8A6]/5',
-                  isComplete && 'opacity-60',
-                  isPending && 'opacity-30'
-                )}
-              >
-                {/* Step indicator */}
-                <div
-                  className={cn(
-                    'w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all duration-300',
-                    isComplete
-                      ? 'bg-[#14B8A6] text-white'
-                      : isActive
-                        ? 'bg-[#14B8A6]/10 text-[#14B8A6] ring-2 ring-[#14B8A6]/30'
-                        : 'bg-muted text-muted-foreground'
-                  )}
-                >
-                  {isComplete ? (
-                    <CheckCircle2 className="w-5 h-5" />
-                  ) : (
-                    <Icon className="w-5 h-5" />
-                  )}
-                </div>
-
-                {/* Label */}
-                <div className="flex-1 min-w-0">
-                  <p
-                    className={cn(
-                      'text-sm font-semibold',
-                      isActive ? 'text-foreground' : 'text-muted-foreground'
-                    )}
-                  >
-                    {step.label}
-                  </p>
-                  {isActive && (
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {step.description}
-                    </p>
-                  )}
-                </div>
-
-                {/* Spinner for active step */}
-                {isActive && (
-                  <Loader2 className="w-4 h-4 text-[#14B8A6] animate-spin shrink-0" />
-                )}
-
-                {/* Checkmark for complete */}
-                {isComplete && (
-                  <span className="text-xs text-[#14B8A6] font-medium shrink-0">Done</span>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
+      <div className="relative border border-white/[0.06] rounded-2xl">
         {/* Progress bar */}
-        <div className="mt-5 h-1 bg-muted rounded-full overflow-hidden">
+        <div className="h-0.5 bg-white/[0.04] overflow-hidden">
           <div
-            className="h-full bg-[#14B8A6] rounded-full transition-all duration-700 ease-out"
-            style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
+            className="h-full bg-gradient-to-r from-[#14B8A6] to-emerald-400 transition-all duration-1000 ease-out relative shimmer"
+            style={{ width: `${progress}%` }}
           />
         </div>
-        <p className="text-xs text-center text-muted-foreground mt-2">
-          Step {currentStep} of {steps.length}
-        </p>
-      </CardContent>
-    </Card>
+
+        <div className="py-8 px-6">
+          <div className="flex items-center gap-4">
+            {steps.map((step, i) => {
+              const stepNum = i + 1;
+              const isActive = stepNum === currentStep;
+              const isComplete = stepNum < currentStep;
+              const Icon = step.icon;
+
+              return (
+                <div
+                  key={stepNum}
+                  className={cn(
+                    'flex-1 flex flex-col items-center gap-3 transition-all duration-500',
+                    isActive && 'scale-105',
+                    !isActive && !isComplete && 'opacity-20',
+                  )}
+                >
+                  <div
+                    className={cn(
+                      'w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500',
+                      isComplete
+                        ? 'bg-[#14B8A6]/20 text-[#14B8A6] border border-[#14B8A6]/20'
+                        : isActive
+                          ? 'bg-gradient-to-br from-[#14B8A6] to-emerald-500 text-white shadow-xl shadow-[#14B8A6]/20'
+                          : 'bg-white/[0.04] text-white/20 border border-white/[0.06]'
+                    )}
+                  >
+                    {isComplete ? (
+                      <CheckCircle2 className="w-6 h-6" />
+                    ) : isActive ? (
+                      <Loader2 className="w-6 h-6 animate-spin" />
+                    ) : (
+                      <Icon className="w-6 h-6" />
+                    )}
+                  </div>
+                  <div className="text-center">
+                    <p className={cn(
+                      'text-xs font-semibold',
+                      isActive ? 'text-white' : isComplete ? 'text-[#14B8A6]/80' : 'text-white/20'
+                    )}>
+                      {step.label}
+                    </p>
+                    {isActive && (
+                      <p className="text-[10px] text-white/40 mt-0.5">{step.description}</p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -2,7 +2,6 @@ import { useState, useRef, useMemo } from 'react';
 import { Link2, FileText, Upload, Loader2, Mic2, Sparkles, Headphones } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   Select,
   SelectContent,
@@ -36,8 +35,8 @@ export default function UrlInput({ onSubmit, onPdfSubmit, isLoading, voices }) {
     );
   }, [voices, provider]);
 
-  function handleProviderChange(newProvider) {
-    setProvider(newProvider);
+  function handleProviderChange(val) {
+    setProvider(val);
     setVoiceId('');
   }
 
@@ -98,113 +97,121 @@ export default function UrlInput({ onSubmit, onPdfSubmit, isLoading, voices }) {
 
   const canSubmit = mode === 'url' ? !!url : !!pdfFile;
 
+  const darkTrigger = 'h-11 rounded-xl bg-white/[0.04] border-white/[0.08] text-white hover:bg-white/[0.06] focus:border-[#14B8A6]/50 focus:ring-[#14B8A6]/20 [&_svg]:text-white/30';
+  const darkContent = 'bg-slate-800 border-white/[0.08] text-white shadow-xl shadow-black/40';
+  const darkItem = 'text-white/70 focus:bg-white/[0.08] focus:text-white';
+
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       {/* URL / PDF Tab Switcher */}
-      <Tabs
-        value={mode}
-        onValueChange={(val) => { setMode(val); setError(''); }}
-        className="w-full"
-      >
-        <TabsList className="w-full h-11 bg-muted/60 p-1 rounded-xl gap-1">
-          <TabsTrigger
-            value="url"
-            disabled={isLoading}
-            className="flex-1 h-9 gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm text-sm font-medium"
-          >
-            <Link2 className="w-4 h-4" />
-            Web URL
-          </TabsTrigger>
-          <TabsTrigger
-            value="pdf"
-            disabled={isLoading}
-            className="flex-1 h-9 gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm text-sm font-medium"
-          >
-            <FileText className="w-4 h-4" />
-            PDF File
-          </TabsTrigger>
-        </TabsList>
+      <div className="flex gap-1 bg-white/[0.04] p-1 rounded-xl border border-white/[0.06]">
+        <button
+          type="button"
+          onClick={() => { setMode('url'); setError(''); }}
+          disabled={isLoading}
+          className={cn(
+            'flex-1 h-10 flex items-center justify-center gap-2 rounded-lg text-sm font-medium transition-all duration-200',
+            mode === 'url'
+              ? 'bg-white/[0.08] text-white shadow-sm border border-white/[0.08]'
+              : 'text-white/40 hover:text-white/60'
+          )}
+        >
+          <Link2 className="w-4 h-4" />
+          Web URL
+        </button>
+        <button
+          type="button"
+          onClick={() => { setMode('pdf'); setError(''); }}
+          disabled={isLoading}
+          className={cn(
+            'flex-1 h-10 flex items-center justify-center gap-2 rounded-lg text-sm font-medium transition-all duration-200',
+            mode === 'pdf'
+              ? 'bg-white/[0.08] text-white shadow-sm border border-white/[0.08]'
+              : 'text-white/40 hover:text-white/60'
+          )}
+        >
+          <FileText className="w-4 h-4" />
+          PDF File
+        </button>
+      </div>
 
-        {/* URL Input */}
-        <TabsContent value="url" className="mt-3">
-          <div className="relative">
-            <Link2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input
-              type="text"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder="Paste any article URL here..."
-              className="pl-12 h-14 text-base rounded-xl border-border/60 focus-visible:border-[#14B8A6] focus-visible:ring-[#14B8A6]/20 focus-visible:ring-[3px]"
-              disabled={isLoading}
-            />
-          </div>
-        </TabsContent>
+      {/* URL Input */}
+      {mode === 'url' && (
+        <div className="relative">
+          <Link2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
+          <Input
+            type="text"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="Paste any URL here..."
+            className="pl-12 h-14 text-base rounded-xl bg-white/[0.04] border-white/[0.08] text-white placeholder:text-white/30 focus-visible:border-[#14B8A6]/50 focus-visible:ring-[#14B8A6]/20 focus-visible:ring-[3px]"
+            disabled={isLoading}
+          />
+        </div>
+      )}
 
-        {/* PDF Upload */}
-        <TabsContent value="pdf" className="mt-3">
-          <div
-            onClick={() => !isLoading && fileInputRef.current?.click()}
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            className={cn(
-              'w-full px-5 py-10 border-2 border-dashed rounded-xl text-center cursor-pointer transition-all duration-200',
-              isDragOver
-                ? 'border-[#14B8A6] bg-teal-50/60 scale-[1.01]'
-                : pdfFile
-                  ? 'border-[#14B8A6] bg-teal-50/40'
-                  : 'border-border hover:border-[#14B8A6]/60 hover:bg-muted/40',
-              isLoading && 'opacity-50 cursor-not-allowed'
-            )}
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".pdf"
-              onChange={handleFileChange}
-              className="hidden"
-              disabled={isLoading}
-            />
-            {pdfFile ? (
-              <div className="flex items-center justify-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-[#14B8A6]/10 flex items-center justify-center">
-                  <FileText className="w-5 h-5 text-[#14B8A6]" />
-                </div>
-                <div className="text-left">
-                  <p className="text-sm font-medium text-foreground">{pdfFile.name}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {(pdfFile.size / 1024 / 1024).toFixed(1)} MB
-                  </p>
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="ml-2 text-muted-foreground hover:text-destructive"
-                  onClick={(e) => { e.stopPropagation(); setPdfFile(null); }}
-                >
-                  Remove
-                </Button>
+      {/* PDF Upload */}
+      {mode === 'pdf' && (
+        <div
+          onClick={() => !isLoading && fileInputRef.current?.click()}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          className={cn(
+            'w-full px-5 py-10 border-2 border-dashed rounded-xl text-center cursor-pointer transition-all duration-200',
+            isDragOver
+              ? 'border-[#14B8A6] bg-[#14B8A6]/5 scale-[1.01]'
+              : pdfFile
+                ? 'border-[#14B8A6]/40 bg-[#14B8A6]/5'
+                : 'border-white/[0.08] hover:border-white/[0.15] hover:bg-white/[0.02]',
+            isLoading && 'opacity-50 cursor-not-allowed'
+          )}
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf"
+            onChange={handleFileChange}
+            className="hidden"
+            disabled={isLoading}
+          />
+          {pdfFile ? (
+            <div className="flex items-center justify-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-[#14B8A6]/10 flex items-center justify-center">
+                <FileText className="w-5 h-5 text-[#14B8A6]" />
               </div>
-            ) : (
-              <div className="flex flex-col items-center gap-2">
-                <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center mb-1">
-                  <Upload className="w-6 h-6 text-muted-foreground" />
-                </div>
-                <p className="text-sm font-medium text-foreground">
-                  Drop your PDF here or click to browse
+              <div className="text-left">
+                <p className="text-sm font-medium text-white">{pdfFile.name}</p>
+                <p className="text-xs text-white/40 mt-0.5">
+                  {(pdfFile.size / 1024 / 1024).toFixed(1)} MB
                 </p>
-                <p className="text-xs text-muted-foreground">PDF files up to 20MB</p>
               </div>
-            )}
-          </div>
-        </TabsContent>
-      </Tabs>
+              <button
+                type="button"
+                className="ml-2 text-xs text-white/30 hover:text-red-400 transition-colors"
+                onClick={(e) => { e.stopPropagation(); setPdfFile(null); }}
+              >
+                Remove
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-12 h-12 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center mb-1">
+                <Upload className="w-6 h-6 text-white/30" />
+              </div>
+              <p className="text-sm font-medium text-white/70">
+                Drop your PDF here or click to browse
+              </p>
+              <p className="text-xs text-white/30">PDF files up to 20MB</p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Error */}
       {error && (
-        <p className="text-sm text-destructive flex items-center gap-1.5 -mt-1">
-          <span className="w-1 h-1 rounded-full bg-destructive inline-block" />
+        <p className="text-sm text-red-400 flex items-center gap-1.5 -mt-1">
+          <span className="w-1 h-1 rounded-full bg-red-400 inline-block" />
           {error}
         </p>
       )}
@@ -212,39 +219,31 @@ export default function UrlInput({ onSubmit, onPdfSubmit, isLoading, voices }) {
       {/* Options Row */}
       <div className="flex flex-col sm:flex-row gap-3">
         {/* Output Mode */}
-        <Select
-          value={outputMode}
-          onValueChange={setOutputMode}
-          disabled={isLoading}
-        >
-          <SelectTrigger className="h-11 rounded-xl border-border/60 bg-background min-w-[140px]">
+        <Select value={outputMode} onValueChange={setOutputMode} disabled={isLoading}>
+          <SelectTrigger className={cn(darkTrigger, 'min-w-[140px]')}>
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-muted-foreground" />
+              <Sparkles className="w-4 h-4 text-white/30" />
               <SelectValue />
             </div>
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="full">Full Read</SelectItem>
-            <SelectItem value="summary">Summary</SelectItem>
+          <SelectContent className={darkContent}>
+            <SelectItem value="full" className={darkItem}>Full Read</SelectItem>
+            <SelectItem value="summary" className={darkItem}>Summary</SelectItem>
           </SelectContent>
         </Select>
 
         {/* Provider */}
         {providers.length > 0 && (
-          <Select
-            value={provider}
-            onValueChange={handleProviderChange}
-            disabled={isLoading}
-          >
-            <SelectTrigger className="h-11 rounded-xl border-border/60 bg-background min-w-[160px]">
+          <Select value={provider} onValueChange={handleProviderChange} disabled={isLoading}>
+            <SelectTrigger className={cn(darkTrigger, 'min-w-[160px]')}>
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className={darkContent}>
               {providers.includes('kokoro') && (
-                <SelectItem value="kokoro">Kokoro (Free)</SelectItem>
+                <SelectItem value="kokoro" className={darkItem}>Kokoro (Free)</SelectItem>
               )}
               {providers.includes('elevenlabs') && (
-                <SelectItem value="elevenlabs">ElevenLabs</SelectItem>
+                <SelectItem value="elevenlabs" className={darkItem}>ElevenLabs</SelectItem>
               )}
             </SelectContent>
           </Select>
@@ -257,16 +256,16 @@ export default function UrlInput({ onSubmit, onPdfSubmit, isLoading, voices }) {
             onValueChange={(val) => setVoiceId(val === '__default__' ? '' : val)}
             disabled={isLoading}
           >
-            <SelectTrigger className="h-11 rounded-xl border-border/60 bg-background flex-1">
+            <SelectTrigger className={cn(darkTrigger, 'flex-1')}>
               <div className="flex items-center gap-2">
-                <Mic2 className="w-4 h-4 text-muted-foreground" />
+                <Mic2 className="w-4 h-4 text-white/30" />
                 <SelectValue placeholder="Default Voice" />
               </div>
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__default__">Default Voice</SelectItem>
+            <SelectContent className={darkContent}>
+              <SelectItem value="__default__" className={darkItem}>Default Voice</SelectItem>
               {filteredVoices.map((v) => (
-                <SelectItem key={v.voice_id} value={v.voice_id}>
+                <SelectItem key={v.voice_id} value={v.voice_id} className={darkItem}>
                   {v.category === 'kokoro' ? v.name.replace('Kokoro - ', '') : v.name}
                 </SelectItem>
               ))}
@@ -278,7 +277,12 @@ export default function UrlInput({ onSubmit, onPdfSubmit, isLoading, voices }) {
         <Button
           type="submit"
           disabled={isLoading || !canSubmit}
-          className="h-11 px-8 rounded-xl bg-[#14B8A6] hover:bg-[#0D9488] text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200 sm:min-w-[160px]"
+          className={cn(
+            'h-11 px-8 rounded-xl font-semibold sm:min-w-[180px]',
+            'bg-gradient-to-r from-[#14B8A6] to-emerald-500 text-white shadow-lg shadow-[#14B8A6]/20',
+            'hover:shadow-xl hover:shadow-[#14B8A6]/30 hover:scale-[1.02]',
+            'transition-all duration-200'
+          )}
         >
           {isLoading ? (
             <>

@@ -1,75 +1,64 @@
 import { useState } from 'react';
-import { Headphones, BookOpen, AlertTriangle, FileAudio2 } from 'lucide-react';
+import { CheckCircle2, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
 import AudioPlayer from './AudioPlayer';
 import { getAudioUrl } from '../api/client';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
 
 export default function ResultPanel({ result }) {
-  const [activeTab, setActiveTab] = useState('listen');
+  const [showText, setShowText] = useState(false);
   const audioUrl = getAudioUrl(result.job_id);
 
   return (
-    <div className="mt-6 space-y-4">
-      {/* Result header */}
-      <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-lg bg-[#14B8A6]/10 flex items-center justify-center">
-          <FileAudio2 className="w-4 h-4 text-[#14B8A6]" />
+    <div className="mt-6 space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Success banner */}
+      <div className="relative rounded-xl overflow-hidden">
+        <div className="absolute inset-0 bg-white/[0.03]" />
+        <div className="relative flex items-center gap-3 border border-white/[0.06] rounded-xl px-4 py-3">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#14B8A6] to-emerald-500 flex items-center justify-center shrink-0 shadow-md shadow-[#14B8A6]/20">
+            <CheckCircle2 className="w-4 h-4 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-sm font-semibold text-white truncate">{result.title}</h2>
+            <p className="text-xs text-white/40">
+              {result.word_count?.toLocaleString()} words processed
+            </p>
+          </div>
+          {result.truncated && (
+            <Badge className="bg-amber-500/10 text-amber-400 border-amber-500/20 gap-1 shrink-0">
+              <AlertTriangle className="w-3 h-3" />
+              Truncated
+            </Badge>
+          )}
         </div>
-        <div>
-          <h2 className="text-sm font-semibold text-foreground">Conversion Complete</h2>
-          <p className="text-xs text-muted-foreground">
-            {result.word_count?.toLocaleString()} words processed
-          </p>
-        </div>
-        {result.truncated && (
-          <Badge
-            variant="outline"
-            className="ml-auto text-amber-600 border-amber-200 bg-amber-50 gap-1"
-          >
-            <AlertTriangle className="w-3 h-3" />
-            Truncated to 5,000 words
-          </Badge>
-        )}
       </div>
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full h-11 bg-muted/60 p-1 rounded-xl gap-1">
-          <TabsTrigger
-            value="listen"
-            className="flex-1 h-9 gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm text-sm font-medium"
-          >
-            <Headphones className="w-4 h-4" />
-            Listen
-          </TabsTrigger>
-          <TabsTrigger
-            value="read"
-            className="flex-1 h-9 gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm text-sm font-medium"
-          >
-            <BookOpen className="w-4 h-4" />
-            Read Text
-          </TabsTrigger>
-        </TabsList>
+      {/* Audio Player */}
+      <AudioPlayer audioUrl={audioUrl} title={result.title} />
 
-        <TabsContent value="listen" className="mt-4 space-y-3">
-          <AudioPlayer audioUrl={audioUrl} title={result.title} />
-          <p className="text-xs text-center text-muted-foreground">
-            Powered by {result.provider === 'elevenlabs' ? 'ElevenLabs' : 'Kokoro TTS'}
-          </p>
-        </TabsContent>
-
-        <TabsContent value="read" className="mt-4">
-          <Card className="border-border/60">
-            <CardContent className="py-5 px-6 max-h-[420px] overflow-y-auto">
-              <div className="prose prose-sm prose-gray max-w-none whitespace-pre-line leading-relaxed text-foreground">
+      {/* Transcript - collapsible */}
+      <div className="relative rounded-xl overflow-hidden">
+        <div className="absolute inset-0 bg-white/[0.03]" />
+        <div className="relative border border-white/[0.06] rounded-xl">
+          <button
+            onClick={() => setShowText(!showText)}
+            className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-white/[0.02] transition-colors"
+          >
+            <span className="text-sm font-medium text-white/60">Read transcript</span>
+            {showText ? (
+              <ChevronUp className="w-4 h-4 text-white/30" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-white/30" />
+            )}
+          </button>
+          {showText && (
+            <div className="px-5 pb-5 border-t border-white/[0.04]">
+              <div className="max-h-[400px] overflow-y-auto mt-3 text-sm whitespace-pre-line leading-relaxed text-white/60">
                 {result.optimized_text}
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

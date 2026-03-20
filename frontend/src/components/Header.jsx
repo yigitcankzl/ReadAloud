@@ -1,18 +1,38 @@
-import { Headphones } from 'lucide-react';
+import { Headphones, Sparkles } from 'lucide-react';
 
 export default function Header() {
   return (
-    <header className="border-b border-border/40 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-[#14B8A6] flex items-center justify-center">
-            <Headphones className="w-4.5 h-4.5 text-white" />
+    <header className="relative pt-16 pb-10">
+      <div className="relative max-w-3xl mx-auto px-4 sm:px-6 text-center">
+        {/* Logo */}
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#14B8A6] to-emerald-500 flex items-center justify-center shadow-lg shadow-[#14B8A6]/25 animate-pulse-glow">
+            <Headphones className="w-7 h-7 text-white" />
           </div>
-          <span className="text-lg font-bold tracking-tight text-foreground">ReadAloud</span>
         </div>
-        <p className="text-sm text-muted-foreground hidden sm:block">
-          Turn any page into a podcast
+
+        {/* Title */}
+        <h1 className="text-4xl sm:text-5xl font-extrabold text-white tracking-tight mb-3">
+          Read<span className="text-[#14B8A6]">Aloud</span>
+        </h1>
+
+        {/* Subtitle */}
+        <p className="text-lg text-white/40 max-w-md mx-auto mb-6">
+          Access any content. Just listen.
         </p>
+
+        {/* Feature pills */}
+        <div className="flex items-center justify-center gap-2 flex-wrap">
+          {['AI-Powered', 'Natural Voices', '100% Free'].map((tag) => (
+            <span
+              key={tag}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.06] text-xs font-medium text-white/40"
+            >
+              <Sparkles className="w-3 h-3 text-[#14B8A6]" />
+              {tag}
+            </span>
+          ))}
+        </div>
       </div>
     </header>
   );

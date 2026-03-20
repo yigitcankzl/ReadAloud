@@ -87,28 +87,33 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex flex-col">
+    <div className="min-h-screen bg-[#09090b] flex flex-col relative overflow-hidden">
+      {/* Teal glow orbs */}
+      <div className="fixed top-[-20%] left-[-10%] w-[500px] h-[500px] bg-[#14B8A6]/[0.07] rounded-full blur-[120px] pointer-events-none" />
+      <div className="fixed bottom-[-20%] right-[-10%] w-[400px] h-[400px] bg-[#14B8A6]/[0.04] rounded-full blur-[120px] pointer-events-none" />
+      <div className="fixed top-[40%] right-[20%] w-[300px] h-[300px] bg-emerald-500/[0.03] rounded-full blur-[100px] pointer-events-none" />
       <Header />
 
-      <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-8">
+      <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 relative z-10">
         {/* Main input card */}
-        <Card className="border-border/60 shadow-sm mb-4">
-          <CardContent className="pt-6 pb-6 px-6">
+        <div className="relative rounded-2xl overflow-hidden mb-4">
+          <div className="absolute inset-0 bg-white/[0.03] backdrop-blur-xl" />
+          <div className="relative border border-white/[0.06] rounded-2xl p-6">
             <UrlInput
               onSubmit={handleConvert}
               onPdfSubmit={handlePdfConvert}
               isLoading={isLoading}
               voices={voices}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Loading */}
         {isLoading && <LoadingState currentStep={loadingStep} />}
 
         {/* Error */}
         {error && (
-          <div className="mt-4 flex items-start gap-3 bg-destructive/5 border border-destructive/20 text-destructive px-5 py-4 rounded-xl">
+          <div className="mt-4 flex items-start gap-3 bg-red-500/10 border border-red-500/20 text-red-400 px-5 py-4 rounded-xl animate-in fade-in slide-in-from-top-2 duration-300">
             <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
             <p className="text-sm leading-relaxed">{error}</p>
           </div>
@@ -118,9 +123,11 @@ export default function App() {
         {result && <ResultPanel result={result} />}
       </main>
 
-      <footer className="text-center py-6 text-xs text-muted-foreground border-t border-border/40">
+      <footer className="text-center py-6 text-xs text-white/20">
         Built with love for{' '}
-        <span className="font-semibold text-[#14B8A6]">MidNight Hackers 2026</span>
+        <span className="font-semibold bg-gradient-to-r from-[#14B8A6] to-emerald-500 bg-clip-text text-transparent">
+          MidNight Hackers 2026
+        </span>
       </footer>
     </div>
   );
