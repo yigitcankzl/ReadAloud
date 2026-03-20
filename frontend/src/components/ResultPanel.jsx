@@ -1,57 +1,75 @@
 import { useState } from 'react';
+import { Headphones, BookOpen, AlertTriangle, FileAudio2 } from 'lucide-react';
 import AudioPlayer from './AudioPlayer';
 import { getAudioUrl } from '../api/client';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 
 export default function ResultPanel({ result }) {
   const [activeTab, setActiveTab] = useState('listen');
-
   const audioUrl = getAudioUrl(result.job_id);
 
   return (
-    <div className="mt-6">
-      <div className="flex border-b border-gray-200 mb-4">
-        <button
-          onClick={() => setActiveTab('listen')}
-          className={`px-6 py-3 font-medium text-sm transition-colors ${
-            activeTab === 'listen'
-              ? 'text-[#14B8A6] border-b-2 border-[#14B8A6]'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          Listen
-        </button>
-        <button
-          onClick={() => setActiveTab('read')}
-          className={`px-6 py-3 font-medium text-sm transition-colors ${
-            activeTab === 'read'
-              ? 'text-[#14B8A6] border-b-2 border-[#14B8A6]'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          Read
-        </button>
+    <div className="mt-6 space-y-4">
+      {/* Result header */}
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-lg bg-[#14B8A6]/10 flex items-center justify-center">
+          <FileAudio2 className="w-4 h-4 text-[#14B8A6]" />
+        </div>
+        <div>
+          <h2 className="text-sm font-semibold text-foreground">Conversion Complete</h2>
+          <p className="text-xs text-muted-foreground">
+            {result.word_count?.toLocaleString()} words processed
+          </p>
+        </div>
+        {result.truncated && (
+          <Badge
+            variant="outline"
+            className="ml-auto text-amber-600 border-amber-200 bg-amber-50 gap-1"
+          >
+            <AlertTriangle className="w-3 h-3" />
+            Truncated to 5,000 words
+          </Badge>
+        )}
       </div>
 
-      {activeTab === 'listen' && (
-        <div className="space-y-4">
-          <AudioPlayer audioUrl={audioUrl} title={result.title} />
-          <div className="flex items-center justify-between text-sm text-gray-500 px-1">
-            <span>{result.word_count.toLocaleString()} words</span>
-            {result.truncated && (
-              <span className="text-amber-500">Content was truncated to 5,000 words</span>
-            )}
-            <span>Powered by ElevenLabs</span>
-          </div>
-        </div>
-      )}
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="w-full h-11 bg-muted/60 p-1 rounded-xl gap-1">
+          <TabsTrigger
+            value="listen"
+            className="flex-1 h-9 gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm text-sm font-medium"
+          >
+            <Headphones className="w-4 h-4" />
+            Listen
+          </TabsTrigger>
+          <TabsTrigger
+            value="read"
+            className="flex-1 h-9 gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm text-sm font-medium"
+          >
+            <BookOpen className="w-4 h-4" />
+            Read Text
+          </TabsTrigger>
+        </TabsList>
 
-      {activeTab === 'read' && (
-        <div className="bg-white border-2 border-gray-100 rounded-xl p-6 max-h-96 overflow-y-auto">
-          <div className="prose prose-gray max-w-none whitespace-pre-line text-left leading-relaxed">
-            {result.optimized_text}
-          </div>
-        </div>
-      )}
+        <TabsContent value="listen" className="mt-4 space-y-3">
+          <AudioPlayer audioUrl={audioUrl} title={result.title} />
+          <p className="text-xs text-center text-muted-foreground">
+            Powered by {result.provider === 'elevenlabs' ? 'ElevenLabs' : 'Kokoro TTS'}
+          </p>
+        </TabsContent>
+
+        <TabsContent value="read" className="mt-4">
+          <Card className="border-border/60">
+            <CardContent className="py-5 px-6 max-h-[420px] overflow-y-auto">
+              <div className="prose prose-sm prose-gray max-w-none whitespace-pre-line leading-relaxed text-foreground">
+                {result.optimized_text}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
