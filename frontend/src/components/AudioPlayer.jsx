@@ -11,12 +11,16 @@ export default function AudioPlayer({ audioUrl, title }) {
   const animRef = useRef(null);
   const analyserRef = useRef(null);
   const audioCtxRef = useRef(null);
+  const seekBarRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
   const [speed, setSpeed] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
+
+  // Expose togglePlay via a ref so App.jsx can call it for Space shortcut
+  const togglePlayRef = useRef(null);
 
   // Setup Web Audio API analyser
   const setupAnalyser = useCallback(() => {
@@ -131,6 +135,18 @@ export default function AudioPlayer({ audioUrl, title }) {
     setIsPlaying(!isPlaying);
   }
 
+  // Keep a stable ref for external callers (keyboard shortcut in App.jsx)
+  useEffect(() => {
+    togglePlayRef.current = togglePlay;
+  });
+
+  // Expose togglePlay on the audio element's DOM node as a custom property
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current._togglePlay = () => togglePlay();
+    }
+  });
+
   function skip(seconds) {
     audioRef.current.currentTime = Math.max(0, Math.min(duration, audioRef.current.currentTime + seconds));
   }
@@ -140,6 +156,25 @@ export default function AudioPlayer({ audioUrl, title }) {
     const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
     audioRef.current.currentTime = pct * duration;
     setCurrentTime(pct * duration);
+  }
+
+  // Keyboard seek support on seek bar
+  function handleSeekKeyDown(e) {
+    if (!duration) return;
+    const step5 = duration * 0.05; // 5% jump
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      skip(step5);
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      skip(-step5);
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      audioRef.current.currentTime = 0;
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      audioRef.current.currentTime = duration;
+    }
   }
 
   function handleVolumeChange(e) {
@@ -170,25 +205,37 @@ export default function AudioPlayer({ audioUrl, title }) {
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
   const effectiveVolume = isMuted ? 0 : volume;
+  const volumePct = Math.round(effectiveVolume * 100);
 
   return (
-    <div className="relative rounded-2xl overflow-hidden">
+    <div
+      className="relative rounded-2xl overflow-hidden"
+      role="region"
+      aria-label={title ? `Audio player: ${title}` : 'Audio player'}
+    >
       {/* Background with glassmorphism */}
       <div className="absolute inset-0 bg-white/[0.03]" />
       <div className="absolute inset-0 bg-[#14B8A6]/[0.03]" />
 
       {/* Glow orbs */}
-      <div className="absolute -top-16 -right-16 w-40 h-40 bg-[#14B8A6]/10 rounded-full blur-3xl" />
-      <div className="absolute -bottom-16 -left-16 w-40 h-40 bg-emerald-500/5 rounded-full blur-3xl" />
+      <div className="absolute -top-16 -right-16 w-40 h-40 bg-[#14B8A6]/10 rounded-full blur-3xl" aria-hidden="true" />
+      <div className="absolute -bottom-16 -left-16 w-40 h-40 bg-emerald-500/5 rounded-full blur-3xl" aria-hidden="true" />
 
       <div className="relative border border-white/[0.06] rounded-2xl backdrop-blur-sm">
-        <audio ref={audioRef} src={audioUrl} preload="metadata" crossOrigin="anonymous" />
+        <audio
+          ref={audioRef}
+          src={audioUrl}
+          preload="metadata"
+          crossOrigin="anonymous"
+          aria-label={title ? `Audio: ${title}` : 'Converted audio'}
+        />
 
         {/* Waveform visualization */}
-        <div className="px-6 pt-6 pb-2">
+        <div className="px-6 pt-6 pb-2" aria-hidden="true">
           <canvas
             ref={canvasRef}
             className="w-full h-16 rounded-lg"
+            aria-hidden="true"
           />
         </div>
 
@@ -202,72 +249,93 @@ export default function AudioPlayer({ audioUrl, title }) {
 
           {/* Seek bar */}
           <div
-            className="group h-1.5 bg-white/[0.08] rounded-full cursor-pointer relative hover:h-2.5 transition-all duration-200 mb-2"
+            ref={seekBarRef}
+            role="slider"
+            tabIndex={0}
+            aria-label="Seek audio position"
+            aria-valuemin={0}
+            aria-valuemax={Math.round(duration) || 0}
+            aria-valuenow={Math.round(currentTime)}
+            aria-valuetext={`${formatTime(currentTime)} of ${formatTime(duration)}`}
+            className="group h-1.5 bg-white/[0.08] rounded-full cursor-pointer relative hover:h-2.5 transition-all duration-200 mb-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]/60"
             onClick={handleSeek}
+            onKeyDown={handleSeekKeyDown}
           >
             <div
               className="h-full bg-gradient-to-r from-[#14B8A6] to-emerald-400 rounded-full transition-all relative overflow-hidden"
               style={{ width: `${progress}%` }}
+              aria-hidden="true"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
             </div>
             <div
               className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-white rounded-full shadow-lg shadow-[#14B8A6]/30 opacity-0 group-hover:opacity-100 transition-all -ml-1.5 ring-2 ring-[#14B8A6]/50"
               style={{ left: `${progress}%` }}
+              aria-hidden="true"
             />
           </div>
 
           {/* Time */}
-          <div className="flex justify-between text-[10px] font-mono text-white/30 mb-5">
+          <div className="flex justify-between text-[10px] font-mono text-white/30 mb-5" aria-hidden="true">
             <span>{formatTime(currentTime)}</span>
             <span>{formatTime(duration)}</span>
           </div>
+          {/* Screen-reader time announcement */}
+          <span className="sr-only" aria-live="off" aria-atomic="true">
+            {formatTime(currentTime)} of {formatTime(duration)}
+          </span>
 
           {/* Main controls */}
-          <div className="flex items-center justify-center gap-6 mb-6">
+          <div className="flex items-center justify-center gap-6 mb-6" role="group" aria-label="Playback controls">
             <button
               onClick={() => skip(-10)}
-              className="text-white/30 hover:text-white/70 transition-colors"
+              aria-label="Skip back 10 seconds"
+              className="text-white/30 hover:text-white/70 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]/60 rounded-md"
             >
-              <SkipBack className="w-5 h-5" />
+              <SkipBack className="w-5 h-5" aria-hidden="true" />
             </button>
 
             <button
               onClick={togglePlay}
+              aria-label={isPlaying ? 'Pause audio' : 'Play audio'}
+              aria-pressed={isPlaying}
               className={cn(
-                'w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 shrink-0',
+                'w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]/60',
                 isPlaying
                   ? 'bg-white/10 text-white hover:bg-white/15 backdrop-blur-sm border border-white/10'
                   : 'bg-gradient-to-br from-[#14B8A6] to-emerald-500 text-white shadow-xl shadow-[#14B8A6]/25 hover:shadow-2xl hover:shadow-[#14B8A6]/30 hover:scale-105'
               )}
             >
               {isPlaying ? (
-                <Pause className="w-6 h-6" fill="currentColor" />
+                <Pause className="w-6 h-6" fill="currentColor" aria-hidden="true" />
               ) : (
-                <Play className="w-6 h-6 ml-1" fill="currentColor" />
+                <Play className="w-6 h-6 ml-1" fill="currentColor" aria-hidden="true" />
               )}
             </button>
 
             <button
               onClick={() => skip(10)}
-              className="text-white/30 hover:text-white/70 transition-colors"
+              aria-label="Skip forward 10 seconds"
+              className="text-white/30 hover:text-white/70 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]/60 rounded-md"
             >
-              <SkipForward className="w-5 h-5" />
+              <SkipForward className="w-5 h-5" aria-hidden="true" />
             </button>
           </div>
 
           {/* Bottom controls */}
           <div className="flex items-center justify-between flex-wrap gap-3">
             {/* Volume */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2" role="group" aria-label="Volume controls">
               <button
                 onClick={toggleMute}
-                className="text-white/30 hover:text-white/60 transition-colors"
+                aria-label={isMuted || effectiveVolume === 0 ? 'Unmute audio' : 'Mute audio'}
+                aria-pressed={isMuted || effectiveVolume === 0}
+                className="text-white/30 hover:text-white/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]/60 rounded-md"
               >
                 {isMuted || effectiveVolume === 0 ? (
-                  <VolumeX className="w-4 h-4" />
+                  <VolumeX className="w-4 h-4" aria-hidden="true" />
                 ) : (
-                  <Volume2 className="w-4 h-4" />
+                  <Volume2 className="w-4 h-4" aria-hidden="true" />
                 )}
               </button>
               <input
@@ -277,18 +345,26 @@ export default function AudioPlayer({ audioUrl, title }) {
                 step="0.05"
                 value={effectiveVolume}
                 onChange={handleVolumeChange}
-                className="w-20 h-1 appearance-none rounded-full bg-white/10 cursor-pointer accent-[#14B8A6]"
+                aria-label={`Volume: ${volumePct}%`}
+                aria-valuetext={`${volumePct}%`}
+                className="w-20 h-1 appearance-none rounded-full bg-white/10 cursor-pointer accent-[#14B8A6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]/60"
               />
             </div>
 
             {/* Speed */}
-            <div className="flex items-center gap-0.5 bg-white/[0.04] rounded-lg p-0.5 border border-white/[0.06]">
+            <div
+              className="flex items-center gap-0.5 bg-white/[0.04] rounded-lg p-0.5 border border-white/[0.06]"
+              role="group"
+              aria-label="Playback speed"
+            >
               {SPEEDS.map((s) => (
                 <button
                   key={s}
                   onClick={() => handleSpeedChange(s)}
+                  aria-label={`Set playback speed to ${s}x`}
+                  aria-pressed={speed === s}
                   className={cn(
-                    'px-2 py-1 text-[10px] rounded-md font-semibold transition-all duration-200',
+                    'px-2 py-1 text-[10px] rounded-md font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]/60',
                     speed === s
                       ? 'bg-[#14B8A6] text-white shadow-md shadow-[#14B8A6]/20'
                       : 'text-white/30 hover:text-white/60'
@@ -303,9 +379,10 @@ export default function AudioPlayer({ audioUrl, title }) {
             <a
               href={audioUrl}
               download
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-semibold text-white/30 border border-white/[0.06] rounded-lg hover:border-[#14B8A6]/30 hover:text-[#14B8A6] transition-all bg-white/[0.02]"
+              aria-label={title ? `Download audio: ${title}` : 'Download audio file'}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-semibold text-white/30 border border-white/[0.06] rounded-lg hover:border-[#14B8A6]/30 hover:text-[#14B8A6] transition-all bg-white/[0.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]/60"
             >
-              <Download className="w-3 h-3" />
+              <Download className="w-3 h-3" aria-hidden="true" />
               Download
             </a>
           </div>
