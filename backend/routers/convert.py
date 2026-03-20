@@ -1,6 +1,9 @@
 import os
+import re
 import uuid
+import asyncio
 from urllib.parse import urlparse
+from typing import Optional
 
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from fastapi.responses import FileResponse
@@ -14,13 +17,46 @@ from services.pdf_extractor import extract_pdf, PDFExtractorError
 router = APIRouter(prefix="/api")
 
 AUDIO_DIR = "/tmp"
+UUID_PATTERN = re.compile(r'^[a-f0-9\-]{36}$')
 
 
 class ConvertRequest(BaseModel):
     url: str
     language: str = "en"
-    voice_id: str = None
+    voice_id: Optional[str] = None
     mode: str = "full"
+
+
+async def _process_and_respond(title, text, word_count, truncated, language, mode, voice_id):
+    """Shared logic for URL and PDF conversion."""
+    try:
+        optimized_text = await asyncio.to_thread(
+            optimize_for_audio, title, text, language, mode
+        )
+    except AIOptimizerError as e:
+        return {"success": False, "error": e.message, "error_code": e.error_code}
+
+    try:
+        audio_bytes = await asyncio.to_thread(
+            text_to_speech, optimized_text, voice_id, language
+        )
+    except TTSError as e:
+        return {"success": False, "error": e.message, "error_code": e.error_code}
+
+    job_id = str(uuid.uuid4())
+    audio_path = os.path.join(AUDIO_DIR, f"readaloud_{job_id}.mp3")
+    with open(audio_path, "wb") as f:
+        f.write(audio_bytes)
+
+    return {
+        "success": True,
+        "job_id": job_id,
+        "title": title,
+        "optimized_text": optimized_text,
+        "audio_url": f"/api/audio/{job_id}",
+        "word_count": word_count,
+        "truncated": truncated,
+    }
 
 
 @router.post("/convert")
@@ -34,47 +70,25 @@ async def convert_url(req: ConvertRequest):
         }
 
     try:
-        article = extract_article(req.url)
+        article = await asyncio.to_thread(extract_article, req.url)
     except ScraperError as e:
         return {"success": False, "error": e.message, "error_code": e.error_code}
 
-    try:
-        optimized_text = optimize_for_audio(
-            article["title"], article["text"], req.language, req.mode
-        )
-    except AIOptimizerError as e:
-        return {"success": False, "error": e.message, "error_code": e.error_code}
-
-    try:
-        audio_bytes = text_to_speech(optimized_text, req.voice_id, req.language)
-    except TTSError as e:
-        return {"success": False, "error": e.message, "error_code": e.error_code}
-
-    job_id = str(uuid.uuid4())
-    audio_path = os.path.join(AUDIO_DIR, f"readaloud_{job_id}.mp3")
-    with open(audio_path, "wb") as f:
-        f.write(audio_bytes)
-
-    return {
-        "success": True,
-        "job_id": job_id,
-        "title": article["title"],
-        "original_text": article["text"],
-        "optimized_text": optimized_text,
-        "audio_url": f"/api/audio/{job_id}",
-        "word_count": article["word_count"],
-        "truncated": article.get("truncated", False),
-    }
+    return await _process_and_respond(
+        article["title"], article["text"], article["word_count"],
+        article.get("truncated", False), req.language, req.mode, req.voice_id,
+    )
 
 
 @router.post("/convert-pdf")
 async def convert_pdf(
     file: UploadFile = File(...),
     language: str = Form("en"),
-    voice_id: str = Form(None),
+    voice_id: Optional[str] = Form(None),
     mode: str = Form("full"),
 ):
-    if not file.filename.lower().endswith(".pdf"):
+    filename = file.filename or "document.pdf"
+    if not filename.lower().endswith(".pdf"):
         return {
             "success": False,
             "error": "Please upload a PDF file",
@@ -90,41 +104,20 @@ async def convert_pdf(
         }
 
     try:
-        article = extract_pdf(file_bytes, file.filename)
+        article = await asyncio.to_thread(extract_pdf, file_bytes, filename)
     except PDFExtractorError as e:
         return {"success": False, "error": e.message, "error_code": e.error_code}
 
-    try:
-        optimized_text = optimize_for_audio(
-            article["title"], article["text"], language, mode
-        )
-    except AIOptimizerError as e:
-        return {"success": False, "error": e.message, "error_code": e.error_code}
-
-    try:
-        audio_bytes = text_to_speech(optimized_text, voice_id, language)
-    except TTSError as e:
-        return {"success": False, "error": e.message, "error_code": e.error_code}
-
-    job_id = str(uuid.uuid4())
-    audio_path = os.path.join(AUDIO_DIR, f"readaloud_{job_id}.mp3")
-    with open(audio_path, "wb") as f:
-        f.write(audio_bytes)
-
-    return {
-        "success": True,
-        "job_id": job_id,
-        "title": article["title"],
-        "original_text": article["text"],
-        "optimized_text": optimized_text,
-        "audio_url": f"/api/audio/{job_id}",
-        "word_count": article["word_count"],
-        "truncated": article.get("truncated", False),
-    }
+    return await _process_and_respond(
+        article["title"], article["text"], article["word_count"],
+        article.get("truncated", False), language, mode, voice_id,
+    )
 
 
 @router.get("/audio/{job_id}")
 async def get_audio(job_id: str):
+    if not UUID_PATTERN.match(job_id):
+        raise HTTPException(status_code=400, detail="Invalid job ID")
     audio_path = os.path.join(AUDIO_DIR, f"readaloud_{job_id}.mp3")
     if not os.path.exists(audio_path):
         raise HTTPException(status_code=404, detail="Audio not found")
@@ -134,7 +127,7 @@ async def get_audio(job_id: str):
 @router.get("/voices")
 async def list_voices():
     try:
-        voices = get_available_voices()
+        voices = await asyncio.to_thread(get_available_voices)
         return {"success": True, "voices": voices}
     except TTSError as e:
         return {"success": False, "error": e.message, "error_code": e.error_code}

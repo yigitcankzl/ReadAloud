@@ -35,10 +35,7 @@ export default function App() {
   const [announcement, setAnnouncement] = useState('');
   const [showShortcuts, setShowShortcuts] = useState(false);
 
-  // Ref forwarded to UrlInput so keyboard shortcuts can interact with it
   const urlInputRef = useRef(null);
-  // Ref for the submit button inside UrlInput's form — we trigger it via formRef
-  const formRef = useRef(null);
 
   // Check for ?url= query parameter (bookmarklet support)
   const [autoUrl, setAutoUrl] = useState(() => {

@@ -82,15 +82,24 @@ KOKORO_VOICES = {
 }
 
 
-def _kokoro_tts(text: str, voice: str = "af_heart", language: str = "en") -> bytes:
-    from kokoro import KPipeline
+_kokoro_pipelines = {}
+
+
+def _get_kokoro_pipeline(lang_code):
+    """Cache KPipeline instances to avoid reloading the model on every call."""
+    if lang_code not in _kokoro_pipelines:
+        from kokoro import KPipeline
+        _kokoro_pipelines[lang_code] = KPipeline(lang_code=lang_code)
+    return _kokoro_pipelines[lang_code]
+
+
+def _kokoro_tts(text: str, voice: str = "af_heart") -> bytes:
     import soundfile as sf
     import numpy as np
 
     voice_prefix = voice[:2] if voice else "af"
-    lang_map = {"a": "a", "b": "b", "e": "e", "f": "f", "h": "h", "i": "i", "j": "j", "p": "p", "z": "z"}
-    lang_code = lang_map.get(voice_prefix[0], "a")
-    pipeline = KPipeline(lang_code=lang_code)
+    lang_code = voice_prefix[0] if voice_prefix else "a"
+    pipeline = _get_kokoro_pipeline(lang_code)
 
     all_audio = []
     for _, _, audio in pipeline(text, voice=voice):
@@ -167,14 +176,14 @@ def _elevenlabs_tts(text: str, voice_id: str, language: str = "en") -> bytes:
 def text_to_speech(text: str, voice_id: str = None, language: str = "en") -> bytes:
     # If a Kokoro voice is selected, use Kokoro directly
     if voice_id in KOKORO_VOICES:
-        return _kokoro_tts(text, voice=voice_id, language=language)
+        return _kokoro_tts(text, voice=voice_id)
 
     # Otherwise try ElevenLabs, fallback to Kokoro
     try:
         return _elevenlabs_tts(text, voice_id, language)
     except TTSError as e:
         print(f"[TTS] ElevenLabs failed, falling back to Kokoro: {e.message}")
-        return _kokoro_tts(text, voice="af_heart", language=language)
+        return _kokoro_tts(text, voice="af_heart")
 
 
 def get_available_voices() -> list[dict]:

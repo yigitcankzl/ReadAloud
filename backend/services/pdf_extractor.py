@@ -16,13 +16,15 @@ def extract_pdf(file_bytes: bytes, filename: str = "document.pdf") -> dict:
     except Exception:
         raise PDFExtractorError("Could not open this PDF file", "INVALID_PDF")
 
-    if doc.page_count == 0:
-        raise PDFExtractorError("This PDF has no pages", "CONTENT_TOO_SHORT")
+    try:
+        if doc.page_count == 0:
+            raise PDFExtractorError("This PDF has no pages", "CONTENT_TOO_SHORT")
 
-    text_parts = []
-    for page in doc:
-        text_parts.append(page.get_text())
-    doc.close()
+        text_parts = []
+        for page in doc:
+            text_parts.append(page.get_text())
+    finally:
+        doc.close()
 
     text = "\n\n".join(text_parts)
     text = clean_text(text)
@@ -41,12 +43,10 @@ def extract_pdf(file_bytes: bytes, filename: str = "document.pdf") -> dict:
         word_count = count_words(text)
 
     title = filename.rsplit(".", 1)[0] if "." in filename else filename
-    paragraphs = split_into_paragraphs(text)
 
     return {
         "title": title,
         "text": text,
-        "paragraphs": paragraphs,
         "word_count": word_count,
         "truncated": truncated,
     }

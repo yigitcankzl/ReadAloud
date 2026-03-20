@@ -102,6 +102,11 @@ export default function AudioPlayer({ audioUrl, title }) {
     animRef.current = requestAnimationFrame(drawWaveform);
     return () => {
       if (animRef.current) cancelAnimationFrame(animRef.current);
+      if (audioCtxRef.current) {
+        audioCtxRef.current.close().catch(() => {});
+        audioCtxRef.current = null;
+        analyserRef.current = null;
+      }
     };
   }, [drawWaveform]);
 
@@ -130,8 +135,11 @@ export default function AudioPlayer({ audioUrl, title }) {
       audioCtxRef.current.resume();
     }
     const audio = audioRef.current;
-    if (isPlaying) audio.pause();
-    else audio.play();
+    if (isPlaying) {
+      audio.pause();
+    } else {
+      audio.play().catch(() => {});
+    }
     setIsPlaying(!isPlaying);
   }
 

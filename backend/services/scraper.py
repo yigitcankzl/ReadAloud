@@ -1,8 +1,11 @@
+import socket
+from urllib.parse import urlparse
+
 import requests
 from readability import Document
 from bs4 import BeautifulSoup
 
-from utils.text_processing import clean_text, split_into_paragraphs, count_words, truncate_to_word_limit
+from utils.text_processing import clean_text, count_words, truncate_to_word_limit
 
 
 class ScraperError(Exception):
@@ -12,13 +15,28 @@ class ScraperError(Exception):
         super().__init__(message)
 
 
+def _is_private_ip(hostname: str) -> bool:
+    """Block requests to private/internal IPs (SSRF protection)."""
+    try:
+        ip = socket.gethostbyname(hostname)
+        import ipaddress
+        addr = ipaddress.ip_address(ip)
+        return addr.is_private or addr.is_loopback or addr.is_reserved
+    except (socket.gaierror, ValueError):
+        return False
+
+
 def extract_article(url: str) -> dict:
+    parsed = urlparse(url)
+    if _is_private_ip(parsed.hostname or ""):
+        raise ScraperError("Cannot fetch internal URLs", "FETCH_FAILED")
+
     headers = {
         "User-Agent": "Mozilla/5.0 (compatible; ReadAloud/1.0)"
     }
 
     try:
-        response = requests.get(url, headers=headers, timeout=15)
+        response = requests.get(url, headers=headers, timeout=15, allow_redirects=True)
     except requests.RequestException as e:
         raise ScraperError(f"Could not fetch the page: {e}", "FETCH_FAILED")
 
@@ -60,12 +78,9 @@ def extract_article(url: str) -> dict:
         text, truncated = truncate_to_word_limit(text, 5000)
         word_count = count_words(text)
 
-    paragraphs = split_into_paragraphs(text)
-
     return {
         "title": title,
         "text": text,
-        "paragraphs": paragraphs,
         "word_count": word_count,
         "truncated": truncated,
     }
