@@ -3,7 +3,7 @@ import Header from './components/Header';
 import UrlInput from './components/UrlInput';
 import LoadingState from './components/LoadingState';
 import ResultPanel from './components/ResultPanel';
-import { convertUrl, getVoices } from './api/client';
+import { convertUrl, convertPdf, getVoices } from './api/client';
 
 const ERROR_MESSAGES = {
   INVALID_URL: 'Please enter a valid URL starting with http:// or https://',
@@ -12,6 +12,9 @@ const ERROR_MESSAGES = {
   CONTENT_TOO_SHORT: "This page doesn't have enough text content to convert.",
   AI_ERROR: 'AI processing failed. Please try again.',
   TTS_ERROR: 'Voice generation failed. Please try again.',
+  INVALID_PDF: 'Please upload a valid PDF file.',
+  PDF_ERROR: 'Could not process this PDF file.',
+  PDF_TOO_LARGE: 'PDF file is too large (max 20MB).',
 };
 
 export default function App() {
@@ -57,6 +60,32 @@ export default function App() {
     }
   }
 
+  async function handlePdfConvert(file, language, voiceId) {
+    setIsLoading(true);
+    setLoadingStep(1);
+    setResult(null);
+    setError(null);
+
+    const stepTimer1 = setTimeout(() => setLoadingStep(2), 3000);
+    const stepTimer2 = setTimeout(() => setLoadingStep(3), 8000);
+
+    try {
+      const data = await convertPdf(file, language, voiceId);
+
+      if (data.success) {
+        setResult(data);
+      } else {
+        setError(ERROR_MESSAGES[data.error_code] || data.error || 'Something went wrong. Please try again.');
+      }
+    } catch {
+      setError('Could not connect to the server. Please try again.');
+    } finally {
+      clearTimeout(stepTimer1);
+      clearTimeout(stepTimer2);
+      setIsLoading(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -64,6 +93,7 @@ export default function App() {
       <main className="max-w-3xl mx-auto p-6">
         <UrlInput
           onSubmit={handleConvert}
+          onPdfSubmit={handlePdfConvert}
           isLoading={isLoading}
           voices={voices}
         />
