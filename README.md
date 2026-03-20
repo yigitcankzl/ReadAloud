@@ -38,6 +38,7 @@ ReadAloud bridges this gap. Paste any URL or upload a PDF — our AI extracts th
 - **Smart AI Processing** — Adapts to news, blogs, docs, forums, papers
 - **Playback Controls** — Speed, skip, volume, seek, MP3 download
 - **100% Free** — Gemini AI + Kokoro TTS, zero API costs
+- **Accessible by Design** — Full screen reader support, ARIA labels, keyboard shortcuts, clipboard auto-paste
 
 ## Architecture
 
@@ -163,6 +164,16 @@ Multipart form data:
 - `mode` — `full` or `summary`
 - `voice_id` — Voice identifier (optional)
 </details>
+
+## Accessibility
+
+ReadAloud is built with visually impaired users in mind:
+
+- **Screen reader support** — Every element has proper ARIA labels, roles, and live regions
+- **Keyboard shortcuts** — `Ctrl+Enter` to convert, `Space` to play/pause, `Escape` to dismiss errors
+- **Clipboard auto-paste** — One-click paste button next to the URL input
+- **Live announcements** — Screen readers announce conversion progress, completion, and errors
+- **Full keyboard navigation** — Tab through all controls, arrow keys on the audio seek bar
 
 ## Future Scope
 
