@@ -11,7 +11,7 @@ class AIOptimizerError(Exception):
 
 SYSTEM_PROMPT = """You are a content adapter that converts written articles into text optimized for audio listening. Rules:
 
-1. Keep ALL factual content — do not remove or summarize information
+1. Keep ALL factual content — do not remove, skip, or summarize any information. The output should be at least as long as the input
 2. Shorten sentences longer than 25 words into multiple shorter sentences
 3. Remove visual-only references: "click here", "see image above", "as shown below", "[1]", "(source)", URLs
 4. Convert bullet lists into flowing sentences with transitions
@@ -46,7 +46,7 @@ def optimize_for_audio(title: str, text: str, language: str = "en") -> str:
             }
         ],
         "generationConfig": {
-            "maxOutputTokens": 4096,
+            "maxOutputTokens": 16384,
             "temperature": 0.7,
         },
     }
