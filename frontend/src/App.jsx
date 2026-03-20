@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { AlertCircle, Keyboard, Bookmark, GripHorizontal } from 'lucide-react';
+import { AlertCircle, Keyboard } from 'lucide-react';
 import Header from './components/Header';
 import UrlInput from './components/UrlInput';
 import LoadingState from './components/LoadingState';
@@ -283,21 +283,26 @@ export default function App() {
               Bookmarklet
             </h2>
             <p className="text-[11px] text-white/30 mb-2">
-              Drag the button below to your bookmarks bar. Then click it on any page to read it aloud.
+              Add a bookmark and paste the code below as the URL. Click it on any page to read it aloud.
             </p>
-            <div className="flex items-center gap-2 mb-4">
-              <a
-                href={`javascript:void(window.open('${window.location.origin}/?url='+encodeURIComponent(window.location.href)))`}
-                onClick={(e) => e.preventDefault()}
-                draggable="true"
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gradient-to-r from-[#14B8A6] to-emerald-500 text-white text-xs font-semibold shadow-md cursor-grab active:cursor-grabbing hover:shadow-lg transition-shadow"
-                aria-label="Drag this to your bookmarks bar to install the ReadAloud bookmarklet"
+            <div className="flex items-center gap-2 mb-2">
+              <code className="flex-1 text-[10px] bg-white/[0.06] border border-white/[0.08] rounded-lg px-3 py-2 text-[#14B8A6] font-mono select-all break-all">
+                {`javascript:void(window.open('${window.location.origin}/?url='+encodeURIComponent(window.location.href)))`}
+              </code>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(`javascript:void(window.open('${window.location.origin}/?url='+encodeURIComponent(window.location.href)))`);
+                  announce('Bookmarklet code copied to clipboard.');
+                }}
+                className="shrink-0 px-3 py-2 rounded-lg bg-white/[0.06] border border-white/[0.08] text-white/40 hover:text-[#14B8A6] hover:border-[#14B8A6]/30 transition-colors text-[10px] font-medium"
               >
-                <GripHorizontal className="w-3.5 h-3.5" aria-hidden="true" />
-                ReadAloud This Page
-              </a>
-              <span className="text-[10px] text-white/20">← drag to bookmarks bar</span>
+                Copy
+              </button>
             </div>
+            <p className="text-[10px] text-white/20 mb-4">
+              Right-click bookmarks bar → Add bookmark → paste as URL
+            </p>
 
             {/* Keyboard Shortcuts */}
             <h2 className="text-[11px] font-semibold text-white/40 uppercase tracking-wider mb-2">
