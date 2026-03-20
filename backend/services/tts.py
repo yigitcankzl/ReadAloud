@@ -14,21 +14,71 @@ class TTSError(Exception):
 
 
 KOKORO_VOICES = {
-    "af_heart": "Heart (Female)",
-    "af_alloy": "Alloy (Female)",
-    "af_bella": "Bella (Female)",
-    "af_nova": "Nova (Female)",
-    "af_sarah": "Sarah (Female)",
-    "af_sky": "Sky (Female)",
-    "am_adam": "Adam (Male)",
-    "am_echo": "Echo (Male)",
-    "am_eric": "Eric (Male)",
-    "am_michael": "Michael (Male)",
-    "am_liam": "Liam (Male)",
+    # American English - Female
+    "af_alloy": "Alloy (US Female)",
+    "af_aoede": "Aoede (US Female)",
+    "af_bella": "Bella (US Female)",
+    "af_heart": "Heart (US Female)",
+    "af_jessica": "Jessica (US Female)",
+    "af_kore": "Kore (US Female)",
+    "af_nicole": "Nicole (US Female)",
+    "af_nova": "Nova (US Female)",
+    "af_river": "River (US Female)",
+    "af_sarah": "Sarah (US Female)",
+    "af_sky": "Sky (US Female)",
+    # American English - Male
+    "am_adam": "Adam (US Male)",
+    "am_echo": "Echo (US Male)",
+    "am_eric": "Eric (US Male)",
+    "am_fenrir": "Fenrir (US Male)",
+    "am_liam": "Liam (US Male)",
+    "am_michael": "Michael (US Male)",
+    "am_onyx": "Onyx (US Male)",
+    "am_puck": "Puck (US Male)",
+    "am_santa": "Santa (US Male)",
+    # British English - Female
     "bf_alice": "Alice (British Female)",
     "bf_emma": "Emma (British Female)",
+    "bf_isabella": "Isabella (British Female)",
+    "bf_lily": "Lily (British Female)",
+    # British English - Male
     "bm_daniel": "Daniel (British Male)",
+    "bm_fable": "Fable (British Male)",
     "bm_george": "George (British Male)",
+    "bm_lewis": "Lewis (British Male)",
+    # Spanish
+    "ef_dora": "Dora (Spanish Female)",
+    "em_alex": "Alex (Spanish Male)",
+    "em_santa": "Santa (Spanish Male)",
+    # French
+    "ff_siwis": "Siwis (French Female)",
+    # Hindi
+    "hf_alpha": "Alpha (Hindi Female)",
+    "hf_beta": "Beta (Hindi Female)",
+    "hm_omega": "Omega (Hindi Male)",
+    "hm_psi": "Psi (Hindi Male)",
+    # Italian
+    "if_sara": "Sara (Italian Female)",
+    "im_nicola": "Nicola (Italian Male)",
+    # Japanese
+    "jf_alpha": "Alpha (Japanese Female)",
+    "jf_gongitsune": "Gongitsune (Japanese Female)",
+    "jf_nezumi": "Nezumi (Japanese Female)",
+    "jf_tebukuro": "Tebukuro (Japanese Female)",
+    "jm_kumo": "Kumo (Japanese Male)",
+    # Portuguese
+    "pf_dora": "Dora (Portuguese Female)",
+    "pm_alex": "Alex (Portuguese Male)",
+    "pm_santa": "Santa (Portuguese Male)",
+    # Chinese
+    "zf_xiaobei": "Xiaobei (Chinese Female)",
+    "zf_xiaoni": "Xiaoni (Chinese Female)",
+    "zf_xiaoxiao": "Xiaoxiao (Chinese Female)",
+    "zf_xiaoyi": "Xiaoyi (Chinese Female)",
+    "zm_yunjian": "Yunjian (Chinese Male)",
+    "zm_yunxi": "Yunxi (Chinese Male)",
+    "zm_yunxia": "Yunxia (Chinese Male)",
+    "zm_yunyang": "Yunyang (Chinese Male)",
 }
 
 
@@ -37,7 +87,9 @@ def _kokoro_tts(text: str, voice: str = "af_heart", language: str = "en") -> byt
     import soundfile as sf
     import numpy as np
 
-    lang_code = "a" if language != "tr" else "a"
+    voice_prefix = voice[:2] if voice else "af"
+    lang_map = {"a": "a", "b": "b", "e": "e", "f": "f", "h": "h", "i": "i", "j": "j", "p": "p", "z": "z"}
+    lang_code = lang_map.get(voice_prefix[0], "a")
     pipeline = KPipeline(lang_code=lang_code)
 
     all_audio = []
