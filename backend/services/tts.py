@@ -174,11 +174,11 @@ def _elevenlabs_tts(text: str, voice_id: str, language: str = "en") -> bytes:
 
 
 def text_to_speech(text: str, voice_id: str = None, language: str = "en") -> bytes:
-    # If a Kokoro voice is selected, use Kokoro directly
-    if voice_id in KOKORO_VOICES:
-        return _kokoro_tts(text, voice=voice_id)
+    # If a Kokoro voice is selected or no voice specified, use Kokoro directly
+    if not voice_id or voice_id in KOKORO_VOICES:
+        return _kokoro_tts(text, voice=voice_id if voice_id in KOKORO_VOICES else "af_heart")
 
-    # Otherwise try ElevenLabs, fallback to Kokoro
+    # ElevenLabs voice selected, try it with Kokoro fallback
     try:
         return _elevenlabs_tts(text, voice_id, language)
     except TTSError as e:
