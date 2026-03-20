@@ -178,15 +178,9 @@ ReadAloud is built with visually impaired users in mind:
 
 ### Bookmarklet
 
-Drag this link to your bookmarks bar, then click it on any webpage to instantly convert it to audio:
+Visit `/bookmarklet.html` in the app and drag the **"ReadAloud This Page"** button to your bookmarks bar. Then click it on any webpage — ReadAloud opens and automatically converts the page to audio.
 
-```
-javascript:void(window.open('http://localhost:5173/?url='+encodeURIComponent(window.location.href)))
-```
-
-Or create a bookmark manually and paste the code above as the URL. When deploying to production, replace `localhost:5173` with your domain.
-
-Supports `?url=` query parameter — the app auto-detects the URL and starts converting immediately.
+The app also supports the `?url=` query parameter directly, e.g. `http://localhost:5173/?url=https://example.com`.
 
 ## Future Scope
 
