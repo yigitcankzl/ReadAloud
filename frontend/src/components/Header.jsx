@@ -1,8 +1,18 @@
-import { Headphones, Sparkles } from 'lucide-react';
+import { Headphones, Sparkles, Github } from 'lucide-react';
 
 export default function Header() {
   return (
     <header className="relative pt-16 pb-10">
+      {/* GitHub link */}
+      <a
+        href="https://github.com/yigitcankzl/ReadAloud"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="absolute top-6 right-6 text-white/20 hover:text-white/60 transition-colors"
+      >
+        <Github className="w-6 h-6" />
+      </a>
+
       <div className="relative max-w-3xl mx-auto px-4 sm:px-6 text-center">
         {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-4">
