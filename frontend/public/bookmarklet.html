@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReadAloud — Install Bookmarklet</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #09090b;
+      color: #fff;
+      font-family: system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card {
+      max-width: 480px;
+      width: 100%;
+      margin: 2rem;
+      padding: 2.5rem;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 1rem;
+      text-align: center;
+    }
+    h1 { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem; }
+    h1 span { color: #14B8A6; }
+    p { color: rgba(255,255,255,0.4); font-size: 0.875rem; line-height: 1.6; margin-bottom: 1.5rem; }
+    .bookmarklet-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      background: linear-gradient(135deg, #14B8A6, #10b981);
+      color: #fff;
+      font-size: 0.875rem;
+      font-weight: 700;
+      border-radius: 0.75rem;
+      text-decoration: none;
+      cursor: grab;
+      box-shadow: 0 4px 20px rgba(20,184,166,0.25);
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .bookmarklet-btn:active { cursor: grabbing; transform: scale(0.97); }
+    .bookmarklet-btn:hover { box-shadow: 0 8px 30px rgba(20,184,166,0.35); }
+    .steps { text-align: left; margin-top: 2rem; }
+    .steps h2 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.3); margin-bottom: 1rem; }
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    .step-num {
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 50%;
+      background: rgba(20,184,166,0.15);
+      color: #14B8A6;
+      font-size: 0.75rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-text { color: rgba(255,255,255,0.5); font-size: 0.8125rem; line-height: 1.5; }
+    .step-text strong { color: rgba(255,255,255,0.8); }
+    .back-link {
+      display: inline-block;
+      margin-top: 1.5rem;
+      color: rgba(255,255,255,0.2);
+      font-size: 0.75rem;
+      text-decoration: none;
+    }
+    .back-link:hover { color: rgba(255,255,255,0.5); }
+    .arrow { font-size: 1.5rem; color: rgba(255,255,255,0.15); margin: 1rem 0 0.5rem; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Read<span>Aloud</span></h1>
+    <p>Install the bookmarklet to read any webpage aloud with one click.</p>
+
+    <a
+      class="bookmarklet-btn"
+      href="javascript:void(window.open(document.location.origin.replace(location.pathname,'').replace(/\/bookmarklet\.html.*/,'')+'/?url='+encodeURIComponent(window.location.href)))"
+    >
+      ⬆ ReadAloud This Page
+    </a>
+
+    <div class="arrow">↑</div>
+    <p style="margin-bottom: 0;">Drag the button above to your <strong style="color:rgba(255,255,255,0.7)">bookmarks bar</strong></p>
+
+    <div class="steps">
+      <h2>How to install</h2>
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">Make sure your <strong>bookmarks bar is visible</strong> (Ctrl+Shift+B)</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text"><strong>Drag</strong> the green button above to your bookmarks bar</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">Go to any webpage and <strong>click the bookmark</strong></div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-text">ReadAloud opens and <strong>automatically converts</strong> the page to audio</div>
+      </div>
+    </div>
+
+    <a class="back-link" href="/">← Back to ReadAloud</a>
+  </div>
+
+  <script>
+    // Fix the bookmarklet URL to use the actual origin
+    const btn = document.querySelector('.bookmarklet-btn');
+    const origin = window.location.origin;
+    const base = origin.includes('localhost') ? origin : origin;
+    btn.href = "javascript:void(window.open('" + base + "/?url='+encodeURIComponent(window.location.href)))";
+  </script>
+</body>
+</html>
