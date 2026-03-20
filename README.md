@@ -21,7 +21,7 @@
 | Frontend | React, Tailwind CSS, Vite |
 | Backend | Python, FastAPI |
 | Content Extraction | readability-lxml, BeautifulSoup |
-| AI Processing | Claude API (Anthropic) |
+| AI Processing | Google Gemini API |
 | Text-to-Speech | ElevenLabs API |
 
 ## Quick Start
@@ -47,7 +47,7 @@ npm run dev
 
 | Variable | Description |
 |---|---|
-| `ANTHROPIC_API_KEY` | Anthropic Claude API key |
+| `GEMINI_API_KEY` | Google Gemini API key |
 | `ELEVENLABS_API_KEY` | ElevenLabs API key |
 | `DEFAULT_VOICE_ID` | Default ElevenLabs voice ID |
 
