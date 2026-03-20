@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
@@ -5,6 +8,13 @@ from dotenv import load_dotenv
 from routers.convert import router as convert_router
 
 load_dotenv()
+
+try:
+    import imageio_ffmpeg
+    ffmpeg_dir = str(Path(imageio_ffmpeg.get_ffmpeg_exe()).parent)
+    os.environ["PATH"] = ffmpeg_dir + os.pathsep + os.environ.get("PATH", "")
+except ImportError:
+    pass
 
 app = FastAPI(title="ReadAloud API", version="1.0.0")
 
