@@ -34,7 +34,7 @@ export default function App() {
       .catch(() => {});
   }, []);
 
-  async function handleConvert(url, language, voiceId) {
+  async function handleConvert(url, language, voiceId, mode) {
     setIsLoading(true);
     setLoadingStep(1);
     setResult(null);
@@ -44,7 +44,7 @@ export default function App() {
     const stepTimer2 = setTimeout(() => setLoadingStep(3), 8000);
 
     try {
-      const data = await convertUrl(url, language, voiceId);
+      const data = await convertUrl(url, language, voiceId, mode);
 
       if (data.success) {
         setResult(data);
@@ -60,7 +60,7 @@ export default function App() {
     }
   }
 
-  async function handlePdfConvert(file, language, voiceId) {
+  async function handlePdfConvert(file, language, voiceId, mode) {
     setIsLoading(true);
     setLoadingStep(1);
     setResult(null);
@@ -70,7 +70,7 @@ export default function App() {
     const stepTimer2 = setTimeout(() => setLoadingStep(3), 8000);
 
     try {
-      const data = await convertPdf(file, language, voiceId);
+      const data = await convertPdf(file, language, voiceId, mode);
 
       if (data.success) {
         setResult(data);

@@ -7,6 +7,7 @@ export default function UrlInput({ onSubmit, onPdfSubmit, isLoading, voices }) {
   const [language, setLanguage] = useState('en');
   const [provider, setProvider] = useState('kokoro');
   const [voiceId, setVoiceId] = useState('');
+  const [outputMode, setOutputMode] = useState('full');
   const [error, setError] = useState('');
   const fileInputRef = useRef(null);
 
@@ -36,13 +37,13 @@ export default function UrlInput({ onSubmit, onPdfSubmit, isLoading, voices }) {
         setError('Please enter a valid URL starting with http:// or https://');
         return;
       }
-      onSubmit(url, language, voiceId || undefined);
+      onSubmit(url, language, voiceId || undefined, outputMode);
     } else {
       if (!pdfFile) {
         setError('Please select a PDF file');
         return;
       }
-      onPdfSubmit(pdfFile, language, voiceId || undefined);
+      onPdfSubmit(pdfFile, language, voiceId || undefined, outputMode);
     }
   }
 
@@ -144,13 +145,13 @@ export default function UrlInput({ onSubmit, onPdfSubmit, isLoading, voices }) {
 
       <div className="flex flex-col sm:flex-row gap-3">
         <select
-          value={language}
-          onChange={(e) => setLanguage(e.target.value)}
+          value={outputMode}
+          onChange={(e) => setOutputMode(e.target.value)}
           className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#14B8A6] focus:outline-none bg-white"
           disabled={isLoading}
         >
-          <option value="en">English</option>
-          <option value="tr">Turkish</option>
+          <option value="full">Full Read</option>
+          <option value="summary">Summary</option>
         </select>
 
         {providers.length > 0 && (

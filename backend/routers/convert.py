@@ -20,6 +20,7 @@ class ConvertRequest(BaseModel):
     url: str
     language: str = "en"
     voice_id: str = None
+    mode: str = "full"
 
 
 @router.post("/convert")
@@ -39,7 +40,7 @@ async def convert_url(req: ConvertRequest):
 
     try:
         optimized_text = optimize_for_audio(
-            article["title"], article["text"], req.language
+            article["title"], article["text"], req.language, req.mode
         )
     except AIOptimizerError as e:
         return {"success": False, "error": e.message, "error_code": e.error_code}
@@ -71,6 +72,7 @@ async def convert_pdf(
     file: UploadFile = File(...),
     language: str = Form("en"),
     voice_id: str = Form(None),
+    mode: str = Form("full"),
 ):
     if not file.filename.lower().endswith(".pdf"):
         return {
@@ -94,7 +96,7 @@ async def convert_pdf(
 
     try:
         optimized_text = optimize_for_audio(
-            article["title"], article["text"], language
+            article["title"], article["text"], language, mode
         )
     except AIOptimizerError as e:
         return {"success": False, "error": e.message, "error_code": e.error_code}
