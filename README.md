@@ -204,6 +204,6 @@ MIT
 
 <div align="center">
 
-Built by **Yigitcan Kizil** for **MidNight Hackers 2026**
+Built by [**yigitcankzl**](https://github.com/yigitcankzl) for **MidNight Hackers 2026**
 
 </div>

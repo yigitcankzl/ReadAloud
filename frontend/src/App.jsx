@@ -249,7 +249,7 @@ export default function App() {
       <footer className="relative text-center py-6 text-xs text-white/20" role="contentinfo">
         <p>
           Built by{' '}
-          <span className="font-semibold text-white/40">Yigitcan Kizil</span>
+          <a href="https://github.com/yigitcankzl" target="_blank" rel="noopener noreferrer" className="font-semibold text-white/40 hover:text-white/60 transition-colors">yigitcankzl</a>
           {' '}for{' '}
           <span className="font-semibold bg-gradient-to-r from-[#14B8A6] to-emerald-500 bg-clip-text text-transparent">
             MidNight Hackers 2026
