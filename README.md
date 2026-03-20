@@ -21,8 +21,10 @@ An AI-powered web accessibility tool that converts any webpage or PDF into natur
 
 ## Demo
 
-<!-- Screenshot veya GIF ekle -->
-![ReadAloud Demo](assets/demo.png)
+![ReadAloud Demo](assets/demo.gif)
+
+![Screenshot 1](assets/1.png)
+![Screenshot 2](assets/2.png)
 
 ## The Problem
 
