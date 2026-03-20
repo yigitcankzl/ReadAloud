@@ -3,6 +3,13 @@ import io
 import requests
 from pydub import AudioSegment
 
+# Force pydub to use imageio-ffmpeg's bundled ffmpeg (snap ffmpeg can't access /tmp)
+try:
+    import imageio_ffmpeg
+    AudioSegment.converter = imageio_ffmpeg.get_ffmpeg_exe()
+except ImportError:
+    pass
+
 from utils.text_processing import chunk_text
 
 

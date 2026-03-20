@@ -5,8 +5,8 @@ import asyncio
 from urllib.parse import urlparse
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Request
+from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
 
 from services.scraper import extract_article, ScraperError
@@ -115,13 +115,46 @@ async def convert_pdf(
 
 
 @router.get("/audio/{job_id}")
-async def get_audio(job_id: str):
+async def get_audio(job_id: str, request: Request):
     if not UUID_PATTERN.match(job_id):
         raise HTTPException(status_code=400, detail="Invalid job ID")
     audio_path = os.path.join(AUDIO_DIR, f"readaloud_{job_id}.mp3")
     if not os.path.exists(audio_path):
         raise HTTPException(status_code=404, detail="Audio not found")
-    return FileResponse(audio_path, media_type="audio/mpeg", filename=f"readaloud_{job_id}.mp3")
+
+    file_size = os.path.getsize(audio_path)
+    range_header = request.headers.get("range")
+
+    if range_header:
+        # Parse "bytes=START-END"
+        range_val = range_header.replace("bytes=", "")
+        parts = range_val.split("-")
+        start = int(parts[0])
+        end = int(parts[1]) if parts[1] else file_size - 1
+        end = min(end, file_size - 1)
+        length = end - start + 1
+
+        with open(audio_path, "rb") as f:
+            f.seek(start)
+            data = f.read(length)
+
+        return Response(
+            content=data,
+            status_code=206,
+            media_type="audio/mpeg",
+            headers={
+                "Content-Range": f"bytes {start}-{end}/{file_size}",
+                "Accept-Ranges": "bytes",
+                "Content-Length": str(length),
+            },
+        )
+
+    return FileResponse(
+        audio_path,
+        media_type="audio/mpeg",
+        filename=f"readaloud_{job_id}.mp3",
+        headers={"Accept-Ranges": "bytes", "Content-Length": str(file_size)},
+    )
 
 
 @router.get("/voices")

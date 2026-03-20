@@ -19,6 +19,11 @@ An AI-powered web accessibility tool that converts any webpage or PDF into natur
 
 ---
 
+## Demo
+
+<!-- Screenshot veya GIF ekle -->
+![ReadAloud Demo](assets/demo.png)
+
 ## The Problem
 
 **1.3 billion** people worldwide live with visual impairments. **700 million** have dyslexia. Yet **96%** of web pages fail basic accessibility standards.
@@ -43,13 +48,13 @@ ReadAloud bridges this gap. Paste any URL or upload a PDF — our AI extracts th
 ## Architecture
 
 ```
-┌─────────────┐     ┌──────────────┐     ┌─────────────┐     ┌───────────┐
-│  URL / PDF  │────>│  Extraction  │────>│  Gemini AI  │────>│ Kokoro    │
-│  Input      │     │  & Cleaning  │     │  Optimizer  │     │ TTS       │
-└─────────────┘     └──────────────┘     └─────────────┘     └───────────┘
-                     readability-lxml      Full / Summary       50+ voices
-                     BeautifulSoup         Content-aware         24kHz audio
-                     PyMuPDF (PDF)         optimization          MP3 export
+┌─────────────┐     ┌──────────────┐     ┌─────────────┐     ┌───────────────┐
+│  URL / PDF  │────>│  Extraction  │────>│  Gemini AI  │────>│  TTS Engine   │
+│  Input      │     │  & Cleaning  │     │  Optimizer  │     │               │
+└─────────────┘     └──────────────┘     └─────────────┘     │ Kokoro (free) │
+                     readability-lxml      Full / Summary     │ ElevenLabs    │
+                     BeautifulSoup         Content-aware      │ (fallback)    │
+                     PyMuPDF (PDF)         optimization       └───────────────┘
 ```
 
 ## Tech Stack
@@ -181,14 +186,6 @@ ReadAloud is built with visually impaired users in mind:
 Visit `/bookmarklet.html` in the app and drag the **"ReadAloud This Page"** button to your bookmarks bar. Then click it on any webpage — ReadAloud opens and automatically converts the page to audio.
 
 The app also supports the `?url=` query parameter directly, e.g. `http://localhost:5173/?url=https://example.com`.
-
-## Future Scope
-
-- [ ] Real-time text highlighting synced with audio playback
-- [ ] Browser extension (expanding on the bookmarklet)
-- [ ] Multi-language support
-- [ ] Batch URL processing
-- [ ] Podcast RSS feed generation
 
 ## License
 
