@@ -165,13 +165,16 @@ def _elevenlabs_tts(text: str, voice_id: str, language: str = "en") -> bytes:
 
 
 def text_to_speech(text: str, voice_id: str = None, language: str = "en") -> bytes:
-    # Try ElevenLabs first, fallback to Kokoro
+    # If a Kokoro voice is selected, use Kokoro directly
+    if voice_id in KOKORO_VOICES:
+        return _kokoro_tts(text, voice=voice_id, language=language)
+
+    # Otherwise try ElevenLabs, fallback to Kokoro
     try:
         return _elevenlabs_tts(text, voice_id, language)
     except TTSError as e:
         print(f"[TTS] ElevenLabs failed, falling back to Kokoro: {e.message}")
-        kokoro_voice = voice_id if voice_id in KOKORO_VOICES else "af_heart"
-        return _kokoro_tts(text, voice=kokoro_voice, language=language)
+        return _kokoro_tts(text, voice="af_heart", language=language)
 
 
 def get_available_voices() -> list[dict]:

@@ -1,13 +1,31 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 
 export default function UrlInput({ onSubmit, onPdfSubmit, isLoading, voices }) {
   const [mode, setMode] = useState('url');
   const [url, setUrl] = useState('');
   const [pdfFile, setPdfFile] = useState(null);
   const [language, setLanguage] = useState('en');
+  const [provider, setProvider] = useState('kokoro');
   const [voiceId, setVoiceId] = useState('');
   const [error, setError] = useState('');
   const fileInputRef = useRef(null);
+
+  const providers = useMemo(() => {
+    const set = new Set();
+    voices.forEach((v) => set.add(v.category === 'kokoro' ? 'kokoro' : 'elevenlabs'));
+    return Array.from(set);
+  }, [voices]);
+
+  const filteredVoices = useMemo(() => {
+    return voices.filter((v) =>
+      provider === 'kokoro' ? v.category === 'kokoro' : v.category !== 'kokoro'
+    );
+  }, [voices, provider]);
+
+  function handleProviderChange(newProvider) {
+    setProvider(newProvider);
+    setVoiceId('');
+  }
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -135,17 +153,29 @@ export default function UrlInput({ onSubmit, onPdfSubmit, isLoading, voices }) {
           <option value="tr">Turkish</option>
         </select>
 
-        {voices && voices.length > 0 && (
+        {providers.length > 0 && (
           <select
-            value={voiceId}
-            onChange={(e) => setVoiceId(e.target.value)}
+            value={provider}
+            onChange={(e) => handleProviderChange(e.target.value)}
             className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#14B8A6] focus:outline-none bg-white"
             disabled={isLoading}
           >
+            {providers.includes('kokoro') && <option value="kokoro">Kokoro (Free)</option>}
+            {providers.includes('elevenlabs') && <option value="elevenlabs">ElevenLabs</option>}
+          </select>
+        )}
+
+        {filteredVoices.length > 0 && (
+          <select
+            value={voiceId}
+            onChange={(e) => setVoiceId(e.target.value)}
+            className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#14B8A6] focus:outline-none bg-white flex-1"
+            disabled={isLoading}
+          >
             <option value="">Default Voice</option>
-            {voices.map((v) => (
+            {filteredVoices.map((v) => (
               <option key={v.voice_id} value={v.voice_id}>
-                {v.name}
+                {v.category === 'kokoro' ? v.name.replace('Kokoro - ', '') : v.name}
               </option>
             ))}
           </select>
