@@ -2,6 +2,7 @@ import socket
 from urllib.parse import urlparse
 
 import requests
+import trafilatura
 from readability import Document
 from bs4 import BeautifulSoup
 
@@ -26,13 +27,35 @@ def _is_private_ip(hostname: str) -> bool:
         return False
 
 
+def _extract_with_readability(html: str) -> tuple[str, str]:
+    """Extract using readability-lxml + BeautifulSoup."""
+    doc = Document(html)
+    title = doc.title()
+    html_content = doc.summary()
+
+    soup = BeautifulSoup(html_content, "lxml")
+    for tag in soup.find_all(["script", "style", "nav", "footer", "header", "aside"]):
+        tag.decompose()
+
+    text = soup.get_text(separator='\n')
+    return title, clean_text(text)
+
+
+def _extract_with_trafilatura(html: str) -> tuple[str, str]:
+    """Extract using trafilatura (better for modern JS-heavy sites)."""
+    text = trafilatura.extract(html, include_comments=False, include_tables=False) or ""
+    metadata = trafilatura.extract_metadata(html)
+    title = metadata.title if metadata and metadata.title else ""
+    return title, clean_text(text)
+
+
 def extract_article(url: str) -> dict:
     parsed = urlparse(url)
     if _is_private_ip(parsed.hostname or ""):
         raise ScraperError("Cannot fetch internal URLs", "FETCH_FAILED")
 
     headers = {
-        "User-Agent": "Mozilla/5.0 (compatible; ReadAloud/1.0)"
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     }
 
     try:
@@ -53,17 +76,16 @@ def extract_article(url: str) -> dict:
             "INVALID_CONTENT"
         )
 
-    doc = Document(response.text)
-    title = doc.title()
-    html_content = doc.summary()
+    html = response.text
 
-    soup = BeautifulSoup(html_content, "lxml")
-
-    for tag in soup.find_all(["script", "style", "nav", "footer", "header", "aside"]):
-        tag.decompose()
-
-    text = soup.get_text(separator='\n')
-    text = clean_text(text)
+    # Try readability first, fall back to trafilatura if too little text
+    title, text = _extract_with_readability(html)
+    if count_words(text) < 50:
+        title2, text2 = _extract_with_trafilatura(html)
+        if count_words(text2) > count_words(text):
+            text = text2
+            if title2:
+                title = title2
 
     word_count = count_words(text)
 
