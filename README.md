@@ -54,9 +54,9 @@ ReadAloud bridges this gap. Paste any URL or upload a PDF — our AI extracts th
 │  URL / PDF  │────>│  Extraction  │────>│  Gemini AI  │────>│  TTS Engine   │
 │  Input      │     │  & Cleaning  │     │  Optimizer  │     │               │
 └─────────────┘     └──────────────┘     └─────────────┘     │ Kokoro (free) │
-                     readability-lxml      Full / Summary     │ ElevenLabs    │
-                     BeautifulSoup         Content-aware      │ (fallback)    │
-                     PyMuPDF (PDF)         optimization       └───────────────┘
+                     readability-lxml      Full / Summary    │ ElevenLabs    │
+                     BeautifulSoup         Content-aware     │ (fallback)    │
+                     PyMuPDF (PDF)         optimization      └───────────────┘
 ```
 
 ## Tech Stack
