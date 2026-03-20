@@ -40,6 +40,12 @@ export default function App() {
   // Ref for the submit button inside UrlInput's form — we trigger it via formRef
   const formRef = useRef(null);
 
+  // Check for ?url= query parameter (bookmarklet support)
+  const [autoUrl, setAutoUrl] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('url') || '';
+  });
+
   useEffect(() => {
     getVoices()
       .then((data) => {
@@ -49,6 +55,16 @@ export default function App() {
       })
       .catch(() => {});
   }, []);
+
+  // Auto-convert if ?url= is present
+  useEffect(() => {
+    if (autoUrl && !isLoading && !result) {
+      handleConvert(autoUrl, 'en', undefined, 'full');
+      setAutoUrl('');
+      // Clean URL bar
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [autoUrl, voices]);
 
   // Helper: announce a message to screen readers via a live region
   function announce(message) {
@@ -232,7 +248,9 @@ export default function App() {
       {/* Footer with keyboard shortcuts */}
       <footer className="relative text-center py-6 text-xs text-white/20" role="contentinfo">
         <p>
-          Built with love for{' '}
+          Built by{' '}
+          <span className="font-semibold text-white/40">Yigitcan Kizil</span>
+          {' '}for{' '}
           <span className="font-semibold bg-gradient-to-r from-[#14B8A6] to-emerald-500 bg-clip-text text-transparent">
             MidNight Hackers 2026
           </span>

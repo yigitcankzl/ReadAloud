@@ -174,11 +174,24 @@ ReadAloud is built with visually impaired users in mind:
 - **Clipboard auto-paste** — One-click paste button next to the URL input
 - **Live announcements** — Screen readers announce conversion progress, completion, and errors
 - **Full keyboard navigation** — Tab through all controls, arrow keys on the audio seek bar
+- **Bookmarklet** — One-click "Read this page" from any website
+
+### Bookmarklet
+
+Drag this link to your bookmarks bar, then click it on any webpage to instantly convert it to audio:
+
+```
+javascript:void(window.open('http://localhost:5173/?url='+encodeURIComponent(window.location.href)))
+```
+
+Or create a bookmark manually and paste the code above as the URL. When deploying to production, replace `localhost:5173` with your domain.
+
+Supports `?url=` query parameter — the app auto-detects the URL and starts converting immediately.
 
 ## Future Scope
 
 - [ ] Real-time text highlighting synced with audio playback
-- [ ] Browser extension for one-click conversion
+- [ ] Browser extension (expanding on the bookmarklet)
 - [ ] Multi-language support
 - [ ] Batch URL processing
 - [ ] Podcast RSS feed generation
@@ -191,6 +204,6 @@ MIT
 
 <div align="center">
 
-**MidNight Hackers 2026**
+Built by **Yigitcan Kizil** for **MidNight Hackers 2026**
 
 </div>
