@@ -130,17 +130,30 @@ export default function AudioPlayer({ audioUrl, title }) {
   }, []);
 
   function togglePlay() {
-    setupAnalyser();
-    if (audioCtxRef.current?.state === 'suspended') {
-      audioCtxRef.current.resume();
-    }
     const audio = audioRef.current;
+    if (!audio) return;
+
+    // Setup analyser only once, after first play
+    try {
+      setupAnalyser();
+      if (audioCtxRef.current?.state === 'suspended') {
+        audioCtxRef.current.resume();
+      }
+    } catch {
+      // Waveform won't work but audio still plays
+    }
+
     if (isPlaying) {
       audio.pause();
+      setIsPlaying(false);
     } else {
-      audio.play().catch(() => {});
+      audio.play()
+        .then(() => setIsPlaying(true))
+        .catch((err) => {
+          console.error('Audio play failed:', err);
+          setIsPlaying(false);
+        });
     }
-    setIsPlaying(!isPlaying);
   }
 
   // Keep a stable ref for external callers (keyboard shortcut in App.jsx)
@@ -233,7 +246,7 @@ export default function AudioPlayer({ audioUrl, title }) {
         <audio
           ref={audioRef}
           src={audioUrl}
-          preload="metadata"
+          preload="auto"
           aria-label={title ? `Audio: ${title}` : 'Converted audio'}
         />
 
