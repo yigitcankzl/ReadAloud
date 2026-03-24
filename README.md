@@ -13,7 +13,7 @@
 
 An AI-powered web accessibility tool that converts any webpage or PDF into natural-sounding audio.
 
-**Built for MidNight Hackers 2026**
+**Built for ImpactHacks by HackathonForAll**
 
 </div>
 
@@ -197,6 +197,6 @@ MIT
 
 <div align="center">
 
-Built by [**yigitcankzl**](https://github.com/yigitcankzl) for **MidNight Hackers 2026**
+Built by [**yigitcankzl**](https://github.com/yigitcankzl) for **ImpactHacks by HackathonForAll**
 
 </div>
